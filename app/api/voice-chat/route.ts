@@ -8,9 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS } from "@/lib/appwrite/config";
 import { Query } from "node-appwrite";
-import OpenAI from "openai";
+import { GoogleGenAI, Type, Schema } from "@google/genai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface ConversationTurn {
@@ -132,33 +132,64 @@ If no relevant information is found, respond with:
 
 Always respond with valid JSON only. No markdown fences.`;
 
-    // 5. Build messages array with multi-turn history
-    const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
-      { role: "system", content: systemPrompt },
-    ];
-
-    // Include recent conversation history (last 10 turns to stay within token limits)
+    // 5. Build messages array with multi-turn history for Gemini
+    // We append the system prompt to the context block as Gemini's system instructions.
+    
+    const parts = [];
+    
+    // Add history
     const recentHistory = conversationHistory.slice(-10);
     for (const turn of recentHistory) {
-      messages.push({
-        role: turn.role,
-        content: turn.content,
+      parts.push({
+        text: `${turn.role.toUpperCase()}: ${turn.content}`
       });
     }
 
     // Add current question
-    messages.push({ role: "user", content: question });
-
-    // 6. Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      messages,
-      temperature: 0.3,
-      max_tokens: 1500,
-      response_format: { type: "json_object" },
+    parts.push({
+      text: `USER: ${question}`
     });
 
-    const raw = completion.choices[0]?.message?.content || "{}";
+    const responseSchema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        answer: {
+          type: Type.STRING,
+          description: "Your detailed, teacher-like explanation here.",
+        },
+        confidence: {
+          type: Type.STRING,
+          description: "'High', 'Medium', or 'Low' confidence score.",
+        },
+        citations: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              fileName: { type: Type.STRING },
+              reference: { type: Type.STRING },
+              snippet: { type: Type.STRING }
+            }
+          }
+        }
+      },
+      required: ["answer", "confidence", "citations"]
+    };
+
+    // 6. Call Google Gemini 
+    const response = await ai.models.generateContent({
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      contents: parts,
+      config: {
+        systemInstruction: systemPrompt,
+        temperature: 0.3,
+        maxOutputTokens: 1500,
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      }
+    });
+
+    const raw = response.text || "{}";
 
     let parsed: {
       answer: string;
