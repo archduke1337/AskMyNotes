@@ -63,7 +63,6 @@ function VoiceChatContent() {
 
   // Agent mode: continuous conversation loop
   const [agentActive, setAgentActive] = useState(false);
-  const [autoSpeak, setAutoSpeak] = useState(true);
   const agentActiveRef = useRef(false);
   const isProcessingRef = useRef(false);
 
@@ -180,24 +179,18 @@ function VoiceChatContent() {
 
       setIsProcessing(false);
 
-      // VOICE AGENT: speak response, then auto-listen
-      if (autoSpeak && ttsSupported) {
+      // ALWAYS respond with BOTH text + voice
+      // Text is already shown above via setMessages.
+      // Now speak the response aloud:
+      if (ttsSupported) {
         await speak(response.answer);
-        // After speaking finishes, auto-start listening if agent is active
-        if (agentActiveRef.current) {
-          // Small delay so mic doesn't pick up speaker noise
-          await new Promise((r) => setTimeout(r, 400));
-          if (agentActiveRef.current && !isProcessingRef.current) {
-            startListening();
-          }
-        }
-      } else {
-        // No auto-speak: still auto-listen if agent is active
-        if (agentActiveRef.current) {
-          await new Promise((r) => setTimeout(r, 300));
-          if (agentActiveRef.current && !isProcessingRef.current) {
-            startListening();
-          }
+      }
+
+      // After speaking finishes, auto-start listening if agent is active
+      if (agentActiveRef.current) {
+        await new Promise((r) => setTimeout(r, 400));
+        if (agentActiveRef.current && !isProcessingRef.current) {
+          startListening();
         }
       }
     } catch (err) {
@@ -477,19 +470,13 @@ function VoiceChatContent() {
             </button>
           )}
 
-          <button
-            onClick={() => setAutoSpeak(!autoSpeak)}
-            className="w-full flex items-center justify-between px-3 py-2 border border-border-default text-[10px] font-mono tracking-widest uppercase hover:bg-bg-subtle cursor-pointer text-text-secondary"
-          >
+          <div className="w-full flex items-center justify-between px-3 py-2 border border-border-default text-[10px] font-mono tracking-widest uppercase text-text-secondary">
             <span className="flex items-center gap-2">
-              {autoSpeak ? (
-                <Volume2 className="w-3 h-3" />
-              ) : (
-                <VolumeX className="w-3 h-3" />
-              )}
-              VOICE OUTPUT: {autoSpeak ? "ON" : "OFF"}
+              <Volume2 className="w-3 h-3" />
+              OUTPUT: VOICE + TEXT
             </span>
-          </button>
+            <span className="w-2 h-2 rounded-full bg-green-500" />
+          </div>
 
           {isSpeaking && (
             <button
