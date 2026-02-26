@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { BrainCircuit, RefreshCcw, Check, X, Eye, Loader2, ChevronDown, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { fetchSubjects, fetchStudyItems, deleteStudyItem } from "@/lib/api";
 import type { Subject, StudyModeItem, MCQContent, ShortAnswerContent } from "@/lib/types";
 
-export default function StudyPage() {
+function StudyContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
 
@@ -272,5 +272,13 @@ export default function StudyPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function StudyPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>}>
+      <StudyContent />
+    </Suspense>
   );
 }

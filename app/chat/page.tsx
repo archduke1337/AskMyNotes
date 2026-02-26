@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Send, Library, FileText, CheckCircle2, ChevronDown, Sparkles, Loader2, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -8,7 +8,7 @@ import { fetchSubjects, fetchChatMessages, sendChatMessage, clearChatHistory, se
 import type { Subject, ChatMessage } from "@/lib/types";
 import type { VoiceChatResponse } from "@/lib/api";
 
-export default function ChatPage() {
+function ChatContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
 
@@ -313,5 +313,13 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>}>
+      <ChatContent />
+    </Suspense>
   );
 }

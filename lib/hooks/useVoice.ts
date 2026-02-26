@@ -1,6 +1,6 @@
 // ─── useVoice — Speech Recognition (STT) + Speech Synthesis (TTS) ────
 // Browser‑native, zero dependencies. Works in Chrome, Edge, Safari.
-// Falls back gracefully when APIs aren't available.
+// Supports "voice agent" mode: auto-listen after speaking, continuous conversation.
 
 "use client";
 
@@ -57,14 +57,38 @@ export interface UseVoiceReturn {
   startListening: () => void;
   /** Stop microphone listening */
   stopListening: () => void;
-  /** Speak text aloud */
-  speak: (text: string) => void;
+  /** Speak text aloud, returns a promise that resolves when speech ends */
+  speak: (text: string) => Promise<void>;
   /** Stop speaking */
   stopSpeaking: () => void;
   /** Clear transcript */
   clearTranscript: () => void;
   /** Last STT error */
   error: string | null;
+}
+
+// Chrome has a bug where speechSynthesis stops after ~15 seconds of continuous
+// speech. The workaround is to split text into smaller chunks at sentence
+// boundaries and speak them sequentially.
+function splitTextForTTS(text: string, maxLen = 180): string[] {
+  if (text.length <= maxLen) return [text];
+
+  const chunks: string[] = [];
+  // Split on sentence-ending punctuation
+  const sentences = text.match(/[^.!?]+[.!?]+\s*|[^.!?]+$/g) || [text];
+  let current = "";
+
+  for (const sentence of sentences) {
+    if ((current + sentence).length > maxLen && current.length > 0) {
+      chunks.push(current.trim());
+      current = sentence;
+    } else {
+      current += sentence;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+
+  return chunks;
 }
 
 export function useVoice(): UseVoiceReturn {
@@ -76,14 +100,21 @@ export function useVoice(): UseVoiceReturn {
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const speakingAbortRef = useRef(false);
+  // Chrome bug workaround: periodically resume speechSynthesis
+  const resumeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const sttSupported = typeof window !== "undefined" && !!getSpeechRecognition();
-  const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window;
+  const sttSupported =
+    typeof window !== "undefined" && !!getSpeechRecognition();
+  const ttsSupported =
+    typeof window !== "undefined" && "speechSynthesis" in window;
 
   // Initialise synthesis ref
   useEffect(() => {
     if (ttsSupported) {
       synthRef.current = window.speechSynthesis;
+      // Pre-load voices (needed in Chrome)
+      synthRef.current.getVoices();
     }
   }, [ttsSupported]);
 
@@ -92,6 +123,7 @@ export function useVoice(): UseVoiceReturn {
     return () => {
       recognitionRef.current?.abort();
       synthRef.current?.cancel();
+      if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
     };
   }, []);
 
@@ -107,7 +139,7 @@ export function useVoice(): UseVoiceReturn {
     recognitionRef.current?.abort();
 
     const recognition = new SR();
-    recognition.continuous = false; // single utterance
+    recognition.continuous = false; // single utterance mode — auto-stops on silence
     recognition.interimResults = true;
     recognition.lang = "en-US";
 
@@ -136,7 +168,8 @@ export function useVoice(): UseVoiceReturn {
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      if (event.error !== "aborted") {
+      // "no-speech" is common when user is silent— don't show as error
+      if (event.error !== "aborted" && event.error !== "no-speech") {
         setError(`Speech recognition error: ${event.error}`);
       }
       setIsListening(false);
@@ -148,7 +181,14 @@ export function useVoice(): UseVoiceReturn {
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+
+    try {
+      recognition.start();
+    } catch (e) {
+      // Handle "recognition already started" edge case
+      console.warn("Recognition start failed:", e);
+      setIsListening(false);
+    }
   }, []);
 
   // ── STT: Stop listening ─────────────────────────────────────────────
@@ -156,45 +196,97 @@ export function useVoice(): UseVoiceReturn {
     recognitionRef.current?.stop();
   }, []);
 
-  // ── TTS: Speak text ─────────────────────────────────────────────────
+  // ── TTS: Speak text (with chunking to avoid Chrome bug) ─────────────
   const speak = useCallback(
-    (text: string) => {
-      if (!synthRef.current) return;
+    (text: string): Promise<void> => {
+      return new Promise((resolve) => {
+        if (!synthRef.current) {
+          resolve();
+          return;
+        }
 
-      // Cancel any current speech
-      synthRef.current.cancel();
+        // Cancel any current speech
+        synthRef.current.cancel();
+        speakingAbortRef.current = false;
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      utterance.lang = "en-US";
+        const chunks = splitTextForTTS(text);
+        let currentIndex = 0;
 
-      // Try to pick a natural voice
-      const voices = synthRef.current.getVoices();
-      const preferred = voices.find(
-        (v) =>
-          v.lang.startsWith("en") &&
-          (v.name.includes("Natural") ||
-            v.name.includes("Google") ||
-            v.name.includes("Samantha") ||
-            v.name.includes("Daniel"))
-      );
-      if (preferred) utterance.voice = preferred;
+        setIsSpeaking(true);
 
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+        // Chrome bug: speechSynthesis pauses after ~15s.
+        // Workaround: call .resume() periodically.
+        if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
+        resumeTimerRef.current = setInterval(() => {
+          if (synthRef.current && synthRef.current.speaking) {
+            synthRef.current.resume();
+          }
+        }, 5000);
 
-      synthRef.current.speak(utterance);
+        const speakNext = () => {
+          if (speakingAbortRef.current || currentIndex >= chunks.length) {
+            setIsSpeaking(false);
+            if (resumeTimerRef.current) {
+              clearInterval(resumeTimerRef.current);
+              resumeTimerRef.current = null;
+            }
+            resolve();
+            return;
+          }
+
+          const utterance = new SpeechSynthesisUtterance(chunks[currentIndex]);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+          utterance.lang = "en-US";
+
+          // Pick a natural-sounding voice
+          const voices = synthRef.current!.getVoices();
+          const preferred = voices.find(
+            (v) =>
+              v.lang.startsWith("en") &&
+              (v.name.includes("Natural") ||
+                v.name.includes("Google") ||
+                v.name.includes("Samantha") ||
+                v.name.includes("Daniel") ||
+                v.name.includes("Microsoft") ||
+                v.name.includes("Zira") ||
+                v.name.includes("David"))
+          );
+          if (preferred) utterance.voice = preferred;
+
+          utterance.onend = () => {
+            currentIndex++;
+            speakNext();
+          };
+
+          utterance.onerror = () => {
+            setIsSpeaking(false);
+            if (resumeTimerRef.current) {
+              clearInterval(resumeTimerRef.current);
+              resumeTimerRef.current = null;
+            }
+            resolve();
+          };
+
+          synthRef.current!.speak(utterance);
+        };
+
+        speakNext();
+      });
     },
     []
   );
 
   // ── TTS: Stop speaking ──────────────────────────────────────────────
   const stopSpeaking = useCallback(() => {
+    speakingAbortRef.current = true;
     synthRef.current?.cancel();
     setIsSpeaking(false);
+    if (resumeTimerRef.current) {
+      clearInterval(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
   }, []);
 
   // ── Clear transcript ────────────────────────────────────────────────

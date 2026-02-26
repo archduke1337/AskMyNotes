@@ -64,7 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await account.deleteSession("current");
+    try {
+      await account.deleteSession("current");
+    } catch {
+      // Session may already be expired — that's fine
+    }
     setUser(null);
   };
 
