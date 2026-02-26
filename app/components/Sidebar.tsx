@@ -24,7 +24,7 @@ export default function Sidebar() {
      const pathname = usePathname();
 
      return (
-          <aside className="w-64 border-r border-border-subtle bg-bg-surface flex-shrink-0 flex-col hidden md:flex">
+          <aside className="w-64 border-r border-border-subtle bg-bg-surface shrink-0 flex-col hidden md:flex">
                {/* Brand area */}
                <div className="h-16 flex items-center px-6 border-b border-border-subtle">
                     <Link href="/" className="font-semibold text-lg text-brand-700 tracking-tight flex items-center gap-2">

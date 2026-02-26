@@ -109,7 +109,7 @@ export default function Dashboard() {
         {subjects.map((subject) => (
           <div
             key={subject.$id}
-            className="group flex flex-col bg-bg-surface border border-border-default rounded-xl p-6 shadow-sm hover:shadow-card transition-all h-[280px]"
+            className="group flex flex-col bg-bg-surface border border-border-default rounded-xl p-6 shadow-sm hover:shadow-card transition-all h-70"
           >
             {/* Card Header & Metadata */}
             <div className="flex-1">
@@ -162,7 +162,7 @@ export default function Dashboard() {
         {canAddMore ? (
           <button
             onClick={() => setShowAddModal(true)}
-            className="group flex flex-col items-center justify-center bg-transparent border-2 border-dashed border-border-strong hover:border-brand-400 hover:bg-brand-50 rounded-xl transition-all h-[280px] text-text-secondary hover:text-brand-700 outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            className="group flex flex-col items-center justify-center bg-transparent border-2 border-dashed border-border-strong hover:border-brand-400 hover:bg-brand-50 rounded-xl transition-all h-70 text-text-secondary hover:text-brand-700 outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           >
             <div className="w-12 h-12 rounded-full bg-bg-surface border border-border-default shadow-sm group-hover:bg-brand-100 group-hover:border-brand-200 flex items-center justify-center mb-5 transition-colors">
               <Plus className="w-5 h-5 text-text-primary group-hover:text-brand-700 transition-colors" />
@@ -173,7 +173,7 @@ export default function Dashboard() {
             </span>
           </button>
         ) : (
-          <div className="flex flex-col items-center justify-center bg-bg-subtle border border-border-subtle rounded-xl h-[280px]">
+          <div className="flex flex-col items-center justify-center bg-bg-subtle border border-border-subtle rounded-xl h-70">
             <div className="w-12 h-12 rounded-full bg-border-subtle flex items-center justify-center mb-5 opacity-50">
               <Lock className="w-5 h-5 text-text-tertiary" />
             </div>
