@@ -1,11 +1,41 @@
-import { Search, Bell, ChevronDown } from "lucide-react";
+"use client";
+
+import { Search, Bell, ChevronDown, LogOut } from "lucide-react";
+import { useAuth } from "@/lib/context/AuthContext";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+     const { user, logout } = useAuth();
+     const pathname = usePathname();
+
+     // Derive page title from pathname
+     const pageTitle = (() => {
+          switch (pathname) {
+               case "/": return "Dashboard";
+               case "/upload": return "Upload Notes";
+               case "/chat": return "Chat";
+               case "/study": return "Study Mode";
+               case "/settings": return "Settings";
+               default: return "Dashboard";
+          }
+     })();
+
+     // User initials from name or email
+     const initials = user
+          ? (user.name || user.email || "?")
+               .split(" ")
+               .map((w) => w[0])
+               .join("")
+               .toUpperCase()
+               .slice(0, 2)
+          : "?";
+
+     const displayName = user?.name || user?.email || "Guest";
+
      return (
-          <header className="h-16 flex items-center justify-between px-8 border-b border-border-subtle bg-bg-surface flex-shrink-0 sticky top-0 z-10 w-full">
+          <header className="h-16 flex items-center justify-between px-8 border-b border-border-subtle bg-bg-surface shrink-0 sticky top-0 z-10 w-full">
                <div className="flex items-center gap-4">
-                    {/* Page Title */}
-                    <h2 className="text-xl font-semibold text-text-primary tracking-tight">Dashboard</h2>
+                    <h2 className="text-xl font-semibold text-text-primary tracking-tight">{pageTitle}</h2>
                </div>
 
                <div className="flex items-center space-x-6">
@@ -23,7 +53,6 @@ export default function Header() {
                     <div className="flex items-center space-x-2">
                          <button className="relative p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-bg-subtle transition-colors">
                               <Bell className="w-5 h-5" />
-                              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent-blue rounded-full border-2 border-bg-surface"></span>
                          </button>
                     </div>
 
@@ -31,17 +60,35 @@ export default function Header() {
                     <div className="h-8 w-px bg-border-subtle mx-2" />
 
                     {/* User Profile Area */}
-                    <button className="flex items-center gap-3 hover:bg-bg-subtle p-1.5 rounded-lg transition-colors text-left">
-                         <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-semibold text-sm border border-brand-200 shrink-0">
-                              SM
+                    {user ? (
+                         <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3 p-1.5 rounded-lg text-left">
+                                   <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-semibold text-sm border border-brand-200 shrink-0">
+                                        {initials}
+                                   </div>
+                                   <div className="hidden md:block">
+                                        <p className="text-sm font-medium text-text-primary leading-none mb-1">{displayName}</p>
+                                        <p className="text-xs text-text-tertiary leading-none">Student</p>
+                                   </div>
+                              </div>
+                              <button
+                                   onClick={logout}
+                                   className="p-2 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-bg-subtle transition-colors"
+                                   title="Sign out"
+                              >
+                                   <LogOut className="w-4 h-4" />
+                              </button>
                          </div>
-                         <div className="hidden md:block">
-                              <p className="text-sm font-medium text-text-primary leading-none mb-1">Sahil Mane</p>
-                              <p className="text-xs text-text-tertiary leading-none">Student</p>
+                    ) : (
+                         <div className="flex items-center gap-3 p-1.5 rounded-lg text-left">
+                              <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500 font-semibold text-sm shrink-0">
+                                   ?
+                              </div>
+                              <div className="hidden md:block">
+                                   <p className="text-sm font-medium text-text-secondary leading-none">Not signed in</p>
+                              </div>
                          </div>
-                         <ChevronDown className="w-4 h-4 text-text-tertiary hidden md:block" />
-                    </button>
-
+                    )}
                </div>
           </header>
      );
