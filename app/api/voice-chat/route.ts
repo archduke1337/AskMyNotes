@@ -12,7 +12,15 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { validateSession, unauthorized } from "@/lib/auth/validateSession";
 import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+let _ai: GoogleGenAI | null = null;
+function getAI() {
+  if (!_ai) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) throw new Error("GEMINI_API_KEY is not set");
+    _ai = new GoogleGenAI({ apiKey: key });
+  }
+  return _ai;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────
 interface ConversationTurn {
@@ -183,7 +191,7 @@ Always respond with valid JSON only. No markdown fences.`;
     };
 
     // 6. Call Google Gemini 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
       contents: parts,
       config: {

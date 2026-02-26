@@ -11,7 +11,15 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { validateSession, unauthorized } from "@/lib/auth/validateSession";
 import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+let _ai: GoogleGenAI | null = null;
+function getAI() {
+  if (!_ai) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) throw new Error("GEMINI_API_KEY is not set");
+    _ai = new GoogleGenAI({ apiKey: key });
+  }
+  return _ai;
+}
 
 interface ChunkDoc {
   $id: string;
@@ -128,7 +136,7 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
       contents: prompt,
       config: {
