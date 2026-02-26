@@ -76,7 +76,7 @@ export default function ChatPage() {
                     fetchNoteFiles(user.$id, activeSubjectId),
                ]);
                setMessages(msgs);
-               setNoteFiles(files.map((f) => ({ name: f.fileName, date: f.uploadedAt || f.$createdAt })));
+               setNoteFiles(files.map((f) => ({ name: f.fileName, date: f.$createdAt })));
           } catch { /* handled */ }
           finally { setLoadingMessages(false); }
      }, [user, activeSubjectId, setLoadingMessages]);
