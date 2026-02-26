@@ -42,7 +42,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
       <div className="flex h-full flex-1 min-w-0">
         {/* Search */}
         <div className="hidden md:flex flex-1 items-center border-l border-border-strong relative group px-4">
-          <label htmlFor="search-directory" className="text-[10px] font-mono absolute -top-[5px] left-3 bg-bg-surface px-1 leading-none uppercase text-text-tertiary tracking-wider shadow-[0_0_0_2px_var(--bg-surface)]">
+          <label htmlFor="search-directory" className="text-[10px] font-mono absolute -top-1.25 left-3 bg-bg-surface px-1 leading-none uppercase text-text-tertiary tracking-wider shadow-[0_0_0_2px_var(--bg-surface)]">
             Query Catalog
           </label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" strokeWidth={1.5} />

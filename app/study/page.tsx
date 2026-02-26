@@ -248,7 +248,7 @@ export default function StudyPage() {
                         <p className="text-sm font-mono uppercase tracking-wider leading-relaxed mb-6">{content.question}</p>
                         <div className="border border-border-strong relative">
                           <textarea
-                            className="w-full bg-transparent p-4 min-h-[100px] font-mono text-xs uppercase tracking-wider focus:outline-none focus:bg-bg-subtle placeholder:text-text-tertiary resize-none"
+                            className="w-full bg-transparent p-4 min-h-25 font-mono text-xs uppercase tracking-wider focus:outline-none focus:bg-bg-subtle placeholder:text-text-tertiary resize-none"
                             placeholder="[ENTER YOUR ANSWER...]"
                           />
                         </div>

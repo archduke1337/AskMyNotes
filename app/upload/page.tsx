@@ -234,7 +234,7 @@ export default function UploadPage() {
                       <td className="w-10 md:w-12 border-r border-border-strong p-3 text-center text-text-tertiary group-hover:text-text-primary">
                         <FileText className="w-4 h-4 mx-auto" />
                       </td>
-                      <td className="p-3 border-r border-border-strong font-bold uppercase tracking-widest text-[10px] truncate max-w-[120px] md:max-w-none">
+                      <td className="p-3 border-r border-border-strong font-bold uppercase tracking-widest text-[10px] truncate max-w-30 md:max-w-none">
                         {file.fileName}
                       </td>
                       <td className="p-3 border-r border-border-strong text-[10px] text-text-tertiary w-20 text-right border-dashed hidden md:table-cell">
