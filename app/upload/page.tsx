@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { UploadCloud, FileText, ChevronDown, Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { fetchSubjects, fetchNoteFiles, uploadNoteFile, deleteNoteFile } from "@/lib/api";
 import type { Subject, NoteFile } from "@/lib/types";
 
-export default function UploadPage() {
+function UploadContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -262,5 +262,13 @@ export default function UploadPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>}>
+      <UploadContent />
+    </Suspense>
   );
 }
