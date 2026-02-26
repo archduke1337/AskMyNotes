@@ -171,3 +171,32 @@ export async function createStudyItem(data: {
 export async function deleteStudyItem(itemId: string): Promise<void> {
   await api(`/api/study/${itemId}`, { method: "DELETE" });
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// VOICE CHAT (AI Teacher)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface VoiceChatResponse {
+  answer: string;
+  confidence: "High" | "Medium" | "Low";
+  citations: { fileName: string; reference: string; snippet: string }[];
+}
+
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export async function sendVoiceChatMessage(data: {
+  userId: string;
+  subjectId: string;
+  subjectName: string;
+  question: string;
+  conversationHistory: ConversationTurn[];
+}): Promise<VoiceChatResponse> {
+  return api("/api/voice-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}

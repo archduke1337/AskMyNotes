@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Folder, Upload, MessageSquare, BookOpen, Settings } from "lucide-react";
+import { Folder, Upload, MessageSquare, BookOpen, Settings, Mic } from "lucide-react";
 
 import Image from "next/image";
 
@@ -10,6 +10,7 @@ const navItems = [
      { name: "CATALOG", href: "/", icon: Folder },
      { name: "INGEST", href: "/upload", icon: Upload },
      { name: "QUERY", href: "/chat", icon: MessageSquare },
+     { name: "VOICE", href: "/voice-chat", icon: Mic },
      { name: "STUDY", href: "/study", icon: BookOpen },
 ];
 
