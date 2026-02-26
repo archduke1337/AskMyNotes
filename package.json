@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup-db": "npx tsx scripts/setup-db.ts"
   },
   "dependencies": {
     "appwrite": "^22.4.1",
