@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const res = await databases.listDocuments(DATABASE_ID, col, [
       Query.equal("userId", userId),
       Query.equal("subjectId", subjectId),
-      Query.orderAsc("createdAt"),
+      Query.orderAsc("$createdAt"),
       Query.limit(100),
     ]);
 
@@ -54,7 +54,6 @@ export async function POST(req: NextRequest) {
       answer: answer ?? null,
       confidence: confidence ?? null,
       citations: citations ? JSON.stringify(citations) : null,
-      createdAt: new Date().toISOString(),
     });
 
     return NextResponse.json(doc, { status: 201 });

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const res = await databases.listDocuments(DATABASE_ID, col, [
       Query.equal("userId", userId),
       Query.equal("subjectId", subjectId),
-      Query.orderDesc("uploadedAt"),
+      Query.orderDesc("$createdAt"),
     ]);
 
     return NextResponse.json(res.documents);
@@ -69,7 +69,6 @@ export async function POST(req: NextRequest) {
         fileName: file.name,
         fileType,
         storageFileId: uploaded.$id,
-        uploadedAt: new Date().toISOString(),
       }
     );
 

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     const res = await databases.listDocuments(DATABASE_ID, col, [
       Query.equal("userId", userId),
-      Query.orderDesc("createdAt"),
+      Query.orderDesc("$createdAt"),
       Query.limit(MAX_SUBJECTS),
     ]);
 
@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
       {
         userId,
         name,
-        createdAt: new Date().toISOString(),
       }
     );
 

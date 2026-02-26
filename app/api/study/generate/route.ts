@@ -151,7 +151,6 @@ Rules:
           type: item.type || "mcq",
           content: JSON.stringify(item.content || {}),
           citations: JSON.stringify(item.citations || []),
-          createdAt: new Date().toISOString(),
         })
       )
     );
