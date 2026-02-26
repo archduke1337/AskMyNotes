@@ -1,56 +1,58 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));@theme inline {
-  /* Brand Palette: Calm Academic Blue/Slate */
-  --color-brand-50: #f4f6f8;
-  --color-brand-100: #e3e8ec;
-  --color-brand-200: #c6d0d9;
-  --color-brand-300: #9cb1c0;
-  --color-brand-400: #7190a4;
-  --color-brand-500: #52758b;
-  --color-brand-600: #425f73;
-  --color-brand-700: #364d5e;
-  --color-brand-800: #2e414f;
-  --color-brand-900: #2a3843;
-  --color-brand-950: #1b252d;
 
-  /* Neutrals: Clean minimalism */
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f4f4f5;
-  --color-neutral-200: #e4e4e7;
-  --color-neutral-300: #d4d4d8;
-  --color-neutral-400: #a1a1aa;
-  --color-neutral-500: #71717a;
-  --color-neutral-600: #52525b;
-  --color-neutral-700: #3f3f46;
-  --color-neutral-800: #27272a;
-  --color-neutral-900: #18181b;
+@theme inline {
+  /* Brand Palette: Strict Monochrome Archival */
+  --color-brand-50: #ffffff;
+  --color-brand-100: #f5f5f5;
+  --color-brand-200: #e5e5e5;
+  --color-brand-300: #d4d4d4;
+  --color-brand-400: #a3a3a3;
+  --color-brand-500: #737373;
+  --color-brand-600: #525252;
+  --color-brand-700: #404040;
+  --color-brand-800: #262626;
+  --color-brand-900: #171717;
+  --color-brand-950: #0a0a0a;
+
+  /* Neutrals */
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
 
   /* Semantic / System Colors */
-  --color-bg-app: #fcfcfc;
+  --color-bg-app: #ffffff;
   --color-bg-surface: #ffffff;
-  --color-bg-subtle: #f4f5f7;
+  --color-bg-subtle: #f5f5f5;
 
-  --color-border-subtle: #eef0f2;
-  --color-border-default: #e2e5e9;
-  --color-border-strong: #d1d5db;
+  --color-border-subtle: #e5e5e5;
+  --color-border-default: #a3a3a3;
+  --color-border-strong: #000000;
 
-  --color-text-primary: #1c2024;
-  --color-text-secondary: #60646c;
-  --color-text-tertiary: #8b8e95;
+  --color-text-primary: #000000;
+  --color-text-secondary: #525252;
+  --color-text-tertiary: #737373;
 
-  --color-accent-blue: #3b82f6;
+  --color-accent-blue: #000000;
 
   --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    "Helvetica Neue", Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    
+  --font-mono:
+    "Courier New", Courier, monospace;
 
-  /* Refined Soft Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-  --shadow-nav: 0 1px 3px 0 rgb(0 0 0 / 0.02), 0 1px 2px -1px rgb(0 0 0 / 0.05);
-  --shadow-card:
-    0 2px 8px -2px rgb(0 0 0 / 0.06), 0 1px 4px -2px rgb(0 0 0 / 0.04);
-  --shadow-hover:
-    0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  /* Strict Layout Constraints (No Shadows) */
+  --shadow-sm: none;
+  --shadow-nav: none;
+  --shadow-card: none;
+  --shadow-hover: none;
 }
 
 @layer base {
@@ -60,58 +62,20 @@
     font-family: var(--font-sans);
   }
 
-  /* Dark mode overrides */
+  /* Dark mode overrides (Simple inversion) */
   .dark {
-    --color-brand-50: #1b252d;
-    --color-brand-100: #2a3843;
-    --color-brand-200: #2e414f;
-    --color-brand-300: #364d5e;
-    --color-brand-400: #425f73;
-    --color-brand-500: #52758b;
-    --color-brand-600: #7190a4;
-    --color-brand-700: #9cb1c0;
-    --color-brand-800: #c6d0d9;
-    --color-brand-900: #e3e8ec;
-    --color-brand-950: #f4f6f8;
-
-    --color-bg-app: #0a0a0a;
-    --color-bg-surface: #121212;
-    --color-bg-subtle: #1c1c1c;
+    --color-bg-app: #000000;
+    --color-bg-surface: #0a0a0a;
+    --color-bg-subtle: #171717;
     
-    --color-border-subtle: #242424;
-    --color-border-default: #333333;
-    --color-border-strong: #444444;
+    --color-border-subtle: #262626;
+    --color-border-default: #404040;
+    --color-border-strong: #ffffff;
 
-    --color-text-primary: #ededed;
-    --color-text-secondary: #a0a0a0;
-    --color-text-tertiary: #6a6a6a;
-
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
-    --shadow-nav: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.6);
-    --shadow-card: 0 2px 8px -2px rgb(0 0 0 / 0.6), 0 1px 4px -2px rgb(0 0 0 / 0.4);
-    --shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #a3a3a3;
+    --color-text-tertiary: #737373;
+    
+    --color-accent-blue: #ffffff;
   }
-}
-
-/* Skiper UI Theme Toggle View Transitions Animation Override */
-::view-transition-group(root) {
-  animation-duration: 500ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-::view-transition-new(root),
-::view-transition-old(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-::view-transition-old(root) {
-  z-index: 1;
-}
-::view-transition-new(root) {
-  z-index: 9999;
-}
-.dark::view-transition-old(root) {
-  z-index: 9999;
-}
-.dark::view-transition-new(root) {
-  z-index: 1;
 }
