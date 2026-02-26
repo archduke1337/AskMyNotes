@@ -9,11 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-<<<<<<< HEAD
     "appwrite": "^22.4.1",
-=======
     "lucide-react": "^0.575.0",
->>>>>>> f00b97c (feat: Introduce a dashboard with subject management and add dedicated pages for uploading notes, chatting, and studying, along with new header and sidebar components.)
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "react": "19.2.3",
