@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const queries = [
       Query.equal("userId", userId),
       Query.equal("subjectId", subjectId),
-      Query.orderDesc("createdAt"),
+      Query.orderDesc("$createdAt"),
     ];
     if (type) queries.push(Query.equal("type", type));
 
@@ -54,7 +54,6 @@ export async function POST(req: NextRequest) {
       type,
       content: JSON.stringify(content),
       citations: citations ? JSON.stringify(citations) : "[]",
-      createdAt: new Date().toISOString(),
     });
 
     return NextResponse.json(doc, { status: 201 });
