@@ -52,7 +52,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         <Image
           src="/image.png"
           alt="AskMyNotes Logo"
-          className="object-contain"
+          className="object-contain scale-150"
           fill
           sizes="224px"
           priority
@@ -81,8 +81,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 href={item.href}
                 onClick={onClose}
                 className={`flex items-center gsap-nav-item gap-3 px-4 py-3 text-base tracking-widest font-mono uppercase border-l-2 ${isActive
-                    ? "text-text-primary bg-bg-subtle border-l-text-primary"
-                    : "text-text-secondary hover:text-text-primary hover:bg-bg-subtle border-l-transparent"
+                  ? "text-text-primary bg-bg-subtle border-l-text-primary"
+                  : "text-text-secondary hover:text-text-primary hover:bg-bg-subtle border-l-transparent"
                   }`}
               >
                 <item.icon
@@ -104,8 +104,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
             href="/settings"
             onClick={onClose}
             className={`flex items-center gsap-nav-item gap-3 px-4 py-3 text-base tracking-widest font-mono uppercase ${pathname === "/settings"
-                ? "text-text-primary bg-bg-subtle"
-                : "text-text-secondary hover:text-text-primary hover:bg-bg-subtle"
+              ? "text-text-primary bg-bg-subtle"
+              : "text-text-secondary hover:text-text-primary hover:bg-bg-subtle"
               }`}
           >
             <Settings className="w-4 h-4 shrink-0" strokeWidth={1.5} />

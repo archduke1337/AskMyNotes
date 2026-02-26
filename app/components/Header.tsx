@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Hash, Menu, LogOut } from "lucide-react";
+import { Search, Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -13,8 +13,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const router = useRouter();
 
   const initials = user?.name
-    ? user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
-    : "??";
+    ? user.name.charAt(0).toUpperCase()
+    : "?";
 
   const handleLogout = async () => {
     await logout();
@@ -31,40 +31,34 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         >
           <Menu className="w-5 h-5 text-text-primary" strokeWidth={1.5} />
         </button>
-        <div className="flex items-center gap-2">
-          <Hash className="w-4 h-4 text-text-tertiary hidden md:block" strokeWidth={1.5} />
-          <h2 className="text-base sm:text-base font-mono tracking-widest uppercase font-bold text-text-primary">
-            DIRECTORY ROOT
-          </h2>
-        </div>
       </div>
 
       <div className="flex h-full flex-1 min-w-0">
         {/* Search */}
         <div className="hidden md:flex flex-1 items-center border-l border-border-strong relative group px-4">
-          <label htmlFor="search-directory" className="text-base font-mono absolute -top-[5px] left-3 bg-bg-surface px-1 leading-none uppercase text-text-tertiary tracking-wider shadow-[0_0_0_2px_var(--bg-surface)]">
-            Query Catalog
-          </label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" strokeWidth={1.5} />
           <input
             id="search-directory"
             type="text"
-            placeholder="FIND RECORD..."
-            className="w-full h-8 bg-transparent border-b border-border-subtle pl-7 pr-4 py-1 text-base font-mono focus:outline-none focus:border-border-strong uppercase placeholder:text-text-tertiary text-text-primary"
+            placeholder="Search catalog..."
+            className="w-full h-8 bg-transparent border-b border-border-subtle pl-7 pr-4 py-1 text-sm font-mono focus:outline-none focus:border-border-strong placeholder:text-text-tertiary text-text-primary"
           />
         </div>
 
         {/* User Abstract Area */}
         <div className="flex items-center h-full border-l border-border-strong shrink-0 px-2 md:px-4 group relative">
           <div className="flex items-center gap-2 md:gap-3 text-left">
-            <div className="w-6 h-6 bg-text-primary flex items-center justify-center text-bg-app font-mono text-base tracking-widest font-bold shrink-0">
+            <div
+              className="w-8 h-8 bg-text-primary flex items-center justify-center text-bg-app font-mono text-base tracking-widest font-bold shrink-0 cursor-default group"
+              title={user ? `${user.name} (${user.email})` : "Profile"}
+            >
               {initials}
             </div>
-            <div className="hidden md:block w-32 truncate">
-              <p className="text-base font-mono font-bold text-text-primary uppercase leading-none mb-0.5 tracking-wider truncate">
+            <div className="hidden md:block w-32 truncate" title={user ? `${user.name} (${user.email})` : "Profile"}>
+              <p className="text-sm font-mono font-bold text-text-primary uppercase leading-none mb-0.5 tracking-wider truncate">
                 OP: {user?.name || "UNKNOWN NODE"}
               </p>
-              <p className="text-[10px] font-mono text-text-tertiary uppercase leading-none tracking-widest truncate">
+              <p className="text-xs font-mono text-text-tertiary uppercase leading-none tracking-widest truncate">
                 ACCESS: SCHOLAR
               </p>
             </div>
@@ -72,7 +66,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
           <button
             onClick={handleLogout}
-            className="ml-2 sm:ml-4 sm:absolute sm:right-0 sm:top-0 sm:h-full sm:w-12 sm:bg-text-primary sm:text-bg-app flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-none cursor-pointer border border-border-strong sm:border-0 p-1.5 sm:p-0 hover:bg-bg-subtle sm:hover:bg-text-primary"
+            className="ml-2 md:ml-4 flex items-center justify-center transition-none cursor-pointer border border-border-subtle p-2 hover:bg-bg-subtle hover:border-border-strong hover:text-danger"
             title="Terminate Session"
           >
             <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
