@@ -148,7 +148,7 @@ export default function Dashboard() {
                         {fileCounts[subject.$id] ?? "–"}
                       </td>
                       <td className="py-4 px-4 border-r border-border-strong font-mono text-[10px] text-text-tertiary uppercase">
-                        {formatDate(subject.$updatedAt || subject.createdAt)}
+                        {formatDate(subject.$updatedAt || subject.$createdAt)}
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center justify-center gap-1">

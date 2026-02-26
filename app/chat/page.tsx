@@ -47,7 +47,7 @@ export default function ChatPage() {
         fetchNoteFiles(user.$id, activeSubjectId),
       ]);
       setMessages(msgs);
-      setNoteFiles(files.map((f) => ({ name: f.fileName, date: f.uploadedAt || f.$createdAt })));
+      setNoteFiles(files.map((f) => ({ name: f.fileName, date: f.$createdAt })));
     } catch { /* handled */ }
     finally { setLoadingMessages(false); }
   }, [user, activeSubjectId]);
@@ -251,7 +251,7 @@ export default function ChatPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-border-strong border-dashed">
                             {cits.map((cit: { snippet?: string; fileName?: string; reference?: string }, i: number) => (
                               <div key={i} className="border border-border-strong p-3">
-                                <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-widest mb-2 border-b border-border-strong pb-1">EVIDENCE NO.{i+1}</p>
+                                <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-widest mb-2 border-b border-border-strong pb-1">EVIDENCE NO.{i + 1}</p>
                                 {cit.snippet && <p className="text-[10px] italic leading-normal mb-2">&quot;{cit.snippet}&quot;</p>}
                                 <div className="flex items-center gap-2 text-text-tertiary">
                                   <FileText className="w-3 h-3 shrink-0" />

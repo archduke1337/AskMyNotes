@@ -14,7 +14,6 @@ export type AuthUser = Models.User<Models.Preferences>;
 export interface Subject extends AppwriteDocument {
   userId: string;
   name: string;
-  createdAt: string; // ISO‑8601 datetime
 }
 
 // ─── 2. NoteFile ──────────────────────────────────────────────────────
@@ -24,7 +23,6 @@ export interface NoteFile extends AppwriteDocument {
   fileName: string;
   fileType: "pdf" | "txt";
   storageFileId: string;
-  uploadedAt: string; // ISO‑8601 datetime
 }
 
 // ─── 3. NoteChunk (RAG backbone) ──────────────────────────────────────
@@ -35,7 +33,6 @@ export interface NoteChunk extends AppwriteDocument {
   chunkText: string;
   reference: string; // e.g. "Page 14, Section 3.4"
   embedding: string; // JSON-stringified float array (stored as string in Appwrite)
-  createdAt: string;
 }
 
 // ─── 4. ChatMessage ───────────────────────────────────────────────────
@@ -46,7 +43,6 @@ export interface ChatMessage extends AppwriteDocument {
   answer?: string;
   confidence?: "High" | "Medium" | "Low";
   citations?: Citation[];
-  createdAt: string;
 }
 
 export interface Citation {
@@ -63,7 +59,6 @@ export interface StudyModeItem extends AppwriteDocument {
   type: "mcq" | "short";
   content: MCQContent | ShortAnswerContent;
   citations: Citation[];
-  createdAt: string;
 }
 
 export interface MCQContent {

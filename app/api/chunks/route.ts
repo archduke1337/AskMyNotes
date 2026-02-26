@@ -57,7 +57,6 @@ export async function POST(req: NextRequest) {
         databases.createDocument(DATABASE_ID, col, ID.unique(), {
           ...c,
           userId,
-          createdAt: new Date().toISOString(),
         })
       )
     );

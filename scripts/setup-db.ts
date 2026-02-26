@@ -88,11 +88,7 @@ async function strAttr(colId: string, key: string, size = 255, required = true) 
   );
 }
 
-async function datetimeAttr(colId: string, key: string, required = true) {
-  await safeCreate(`  attr ${colId}.${key}`, () =>
-    db.createDatetimeAttribute(DATABASE_ID, colId, key, required)
-  );
-}
+
 
 // Note: Appwrite doesn't have a native float-array attribute type.
 // Embeddings are stored as a JSON string in a large string attribute.
@@ -104,7 +100,6 @@ async function setupSubjects() {
   await createCollection(id, "Subjects");
   await strAttr(id, "userId");
   await strAttr(id, "name");
-  await datetimeAttr(id, "createdAt");
   await sleep(2000); // wait for attributes to settle
 }
 
@@ -118,7 +113,6 @@ async function setupNoteFiles() {
   await strAttr(id, "fileName");
   await strAttr(id, "fileType", 10);
   await strAttr(id, "storageFileId");
-  await datetimeAttr(id, "uploadedAt");
   await sleep(2000);
 }
 
@@ -135,7 +129,6 @@ async function setupNoteChunks() {
   // Appwrite doesn't have a native float‑array attribute in all plans.
   // We store embeddings as a JSON string alternatively:
   await strAttr(id, "embedding", 100000);
-  await datetimeAttr(id, "createdAt");
   await sleep(2000);
 }
 
@@ -150,7 +143,6 @@ async function setupChatHistory() {
   await strAttr(id, "answer", 10000, false);
   await strAttr(id, "confidence", 10, false);
   await strAttr(id, "citations", 10000, false); // JSON string of Citation[]
-  await datetimeAttr(id, "createdAt");
   await sleep(2000);
 }
 
@@ -164,7 +156,6 @@ async function setupStudyMode() {
   await strAttr(id, "type", 10);
   await strAttr(id, "content", 10000); // JSON string
   await strAttr(id, "citations", 10000); // JSON string of Citation[]
-  await datetimeAttr(id, "createdAt");
   await sleep(2000);
 }
 
