@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import { AuthProvider } from "@/lib/context/AuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,18 +23,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased font-sans h-screen w-full overflow-hidden flex bg-bg-app text-text-primary`}>
-        {/* Sidebar Component */}
-        <Sidebar />
+        <AuthProvider>
+          {/* Sidebar Component */}
+          <Sidebar />
 
-        <div className="flex-1 flex flex-col min-w-0 h-full">
-          {/* Top Header Component */}
-          <Header />
+          <div className="flex-1 flex flex-col min-w-0 h-full">
+            {/* Top Header Component */}
+            <Header />
 
-          {/* Main Content Area */}
-          <main className="flex-1 overflow-y-auto w-full">
-            {children}
-          </main>
-        </div>
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-y-auto w-full">
+              {children}
+            </main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );
