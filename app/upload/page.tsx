@@ -127,8 +127,8 @@ export default function UploadPage() {
       />
 
       <div className="h-12 border-b border-border-strong flex items-center justify-between px-4 md:px-6 shrink-0 bg-bg-surface relative z-10">
-        <div className="text-[10px] font-mono font-bold tracking-widest uppercase">
-          PROCESS: DATA INGESTION // FORM.01
+        <div className="text-xs font-semibold tracking-wide text-text-primary">
+          Upload Documents
         </div>
       </div>
 
@@ -143,14 +143,14 @@ export default function UploadPage() {
 
         <div className="border border-border-strong bg-bg-surface">
           <div className="border-b border-border-strong p-4 bg-text-primary text-bg-app">
-            <h2 className="text-xs font-mono font-bold tracking-widest uppercase">UPLOAD NEW RECORD (PDF / TXT)</h2>
+            <h2 className="text-sm font-semibold tracking-wide">Upload File (PDF / TXT)</h2>
           </div>
 
           <div className="p-4 md:p-6 space-y-6 md:space-y-8">
             {/* Subject Selector */}
             <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] border border-border-strong">
-              <div className="p-3 md:p-4 border-b md:border-b-0 md:border-r border-border-strong bg-bg-subtle flex items-center justify-center text-[10px] font-mono font-bold uppercase tracking-widest">
-                TARGET INDEX
+              <div className="p-3 md:p-4 border-b md:border-b-0 md:border-r border-border-strong bg-bg-subtle flex items-center justify-center text-sm font-semibold tracking-wide text-text-secondary">
+                Subject
               </div>
               <div className="relative">
                 <select
@@ -158,9 +158,9 @@ export default function UploadPage() {
                   value={activeSubjectId}
                   onChange={(e) => setActiveSubjectId(e.target.value)}
                 >
-                  {subjects.length === 0 && <option value="">NO SUBJECTS AVAILABLE</option>}
+                  {subjects.length === 0 && <option value="">No subjects available</option>}
                   {subjects.map((s) => (
-                    <option key={s.$id} value={s.$id}>{s.name.toUpperCase()}</option>
+                    <option key={s.$id} value={s.$id}>{s.name}</option>
                   ))}
                 </select>
                 <div className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -175,9 +175,8 @@ export default function UploadPage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border border-dashed cursor-pointer flex flex-col items-center justify-center py-16 md:py-24 relative overflow-hidden transition-colors ${
-                dragOver ? "border-text-primary bg-bg-subtle" : "border-border-strong hover:bg-bg-subtle"
-              } ${uploading ? "pointer-events-none opacity-60" : ""} ${!activeSubjectId ? "opacity-30 pointer-events-none" : ""}`}
+              className={`border border-dashed cursor-pointer flex flex-col items-center justify-center py-16 md:py-24 relative overflow-hidden transition-colors ${dragOver ? "border-text-primary bg-bg-subtle" : "border-border-strong hover:bg-bg-subtle"
+                } ${uploading ? "pointer-events-none opacity-60" : ""} ${!activeSubjectId ? "opacity-30 pointer-events-none" : ""}`}
             >
               <input
                 ref={fileInputRef}
@@ -190,17 +189,17 @@ export default function UploadPage() {
               {uploading ? (
                 <>
                   <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                  <p className="text-[10px] font-mono tracking-widest uppercase">UPLOADING... {uploadProgress}%</p>
+                  <p className="text-sm font-medium tracking-wide">Uploading... {uploadProgress}%</p>
                 </>
               ) : (
                 <>
                   <div className="w-12 h-12 border border-border-strong flex items-center justify-center mb-6 bg-bg-surface">
                     <UploadCloud className="w-5 h-5" strokeWidth={1.5} />
                   </div>
-                  <h3 className="font-bold text-sm uppercase tracking-widest">TRANSMIT FILES HERE</h3>
-                  <p className="text-[10px] font-mono text-text-tertiary uppercase mt-2 tracking-widest text-center max-w-sm leading-relaxed">
-                    DRAG & DROP OR CLICK TO BROWSE.<br />
-                    MAX SIZE: 50MB // FORMATS: .PDF .TXT
+                  <h3 className="font-semibold text-sm tracking-wide">Drag & Drop Files Here</h3>
+                  <p className="text-xs text-text-tertiary mt-2 text-center max-w-sm leading-relaxed">
+                    Or click to browse.<br />
+                    Max size: 50MB (PDF, TXT)
                   </p>
                 </>
               )}
@@ -212,9 +211,9 @@ export default function UploadPage() {
         {activeSubjectId && (
           <div className="border border-border-strong bg-bg-surface">
             <div className="border-b border-border-strong p-2 bg-bg-subtle flex justify-between items-center">
-              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase ml-2">UPLOAD_SESSION_LOG</h3>
-              <span className="text-[10px] font-mono text-text-tertiary px-2 tracking-widest">
-                {loadingFiles ? "..." : `${files.length} RECORD(S)`}
+              <h3 className="text-sm font-semibold tracking-wide ml-2">Uploaded Files</h3>
+              <span className="text-xs font-medium text-text-tertiary px-2 tracking-wide">
+                {loadingFiles ? "..." : `${files.length} files`}
               </span>
             </div>
 
@@ -223,8 +222,8 @@ export default function UploadPage() {
                 <Loader2 className="w-4 h-4 animate-spin text-text-tertiary" />
               </div>
             ) : files.length === 0 ? (
-              <div className="text-center py-8 text-[10px] font-mono text-text-tertiary tracking-widest uppercase">
-                NO FILES UPLOADED YET
+              <div className="text-center py-8 text-sm font-medium text-text-tertiary">
+                No files uploaded yet
               </div>
             ) : (
               <table className="w-full text-left border-collapse font-sans text-xs">
@@ -234,11 +233,11 @@ export default function UploadPage() {
                       <td className="w-10 md:w-12 border-r border-border-strong p-3 text-center text-text-tertiary group-hover:text-text-primary">
                         <FileText className="w-4 h-4 mx-auto" />
                       </td>
-                      <td className="p-3 border-r border-border-strong font-bold uppercase tracking-widest text-[10px] truncate max-w-30 md:max-w-none">
+                      <td className="p-3 border-r border-border-strong font-medium text-sm truncate max-w-30 md:max-w-none">
                         {file.fileName}
                       </td>
-                      <td className="p-3 border-r border-border-strong text-[10px] text-text-tertiary w-20 text-right border-dashed hidden md:table-cell">
-                        {file.fileType.toUpperCase()}
+                      <td className="p-3 border-r border-border-strong text-xs text-text-tertiary w-20 text-right border-dashed hidden md:table-cell uppercase font-mono">
+                        {file.fileType}
                       </td>
                       <td className="w-10 md:w-12 p-3 text-center">
                         <button

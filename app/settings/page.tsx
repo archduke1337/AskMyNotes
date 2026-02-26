@@ -30,34 +30,32 @@ export default function SettingsPage() {
       />
 
       <div className="h-12 border-b border-border-strong flex items-center px-4 md:px-6 shrink-0 bg-bg-surface relative z-10">
-        <h2 className="text-[10px] font-mono tracking-widest uppercase font-bold">SYSTEM CONFIGURATION</h2>
+        <h2 className="text-sm font-semibold tracking-wide">Settings</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 max-w-2xl mx-auto w-full space-y-6">
         {/* User Profile */}
         <div className="border border-border-strong bg-bg-surface">
           <div className="border-b border-border-strong p-4 bg-text-primary text-bg-app">
-            <h3 className="text-xs font-mono font-bold tracking-widest uppercase">OPERATOR PROFILE</h3>
+            <h3 className="text-sm font-semibold tracking-wide">Profile</h3>
           </div>
           <div className="p-4 md:p-6 space-y-4">
             <div className="flex items-center gap-4 border border-border-strong p-4">
-              <div className="w-12 h-12 bg-text-primary text-bg-app flex items-center justify-center font-mono text-lg font-bold shrink-0">
+              <div className="w-12 h-12 bg-text-primary text-bg-app flex items-center justify-center text-lg font-bold shrink-0 rounded">
                 {user?.name?.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) || "??"}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <User className="w-3 h-3 text-text-tertiary" />
-                  <p className="text-sm font-mono font-bold uppercase tracking-wider">{user?.name || "Unknown"}</p>
+                  <p className="text-sm font-semibold tracking-wide">{user?.name || "Unknown"}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-3 h-3 text-text-tertiary" />
-                  <p className="text-[10px] font-mono text-text-secondary">{user?.email || "—"}</p>
+                  <p className="text-xs text-text-secondary">{user?.email || "—"}</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2 border border-border-strong p-3 bg-bg-subtle">
-              <Shield className="w-3 h-3 text-text-tertiary" />
-              <span className="text-[10px] font-mono tracking-widest uppercase text-text-tertiary">
+              <span className="text-xs font-medium text-text-tertiary">
                 ID: {user?.$id || "—"}
               </span>
             </div>
@@ -67,33 +65,31 @@ export default function SettingsPage() {
         {/* Theme */}
         <div className="border border-border-strong bg-bg-surface">
           <div className="border-b border-border-strong p-4 bg-bg-subtle">
-            <h3 className="text-xs font-mono font-bold tracking-widest uppercase">DISPLAY MODE</h3>
+            <h3 className="text-sm font-semibold tracking-wide">Theme</h3>
           </div>
           <div className="p-4 md:p-6">
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setTheme("light")}
-                className={`flex items-center justify-center gap-3 p-4 border font-mono text-[10px] tracking-widest uppercase font-bold cursor-pointer transition-colors ${
-                  resolvedTheme === "light"
+                className={`flex items-center justify-center gap-3 p-4 border text-sm font-semibold tracking-wide cursor-pointer rounded transition-colors ${resolvedTheme === "light"
                     ? "border-text-primary bg-bg-subtle border-2"
                     : "border-border-strong hover:bg-bg-subtle"
-                }`}
+                  }`}
               >
-                <Sun className="w-4 h-4" /> LIGHT
+                <Sun className="w-4 h-4" /> Light
               </button>
               <button
                 onClick={() => setTheme("dark")}
-                className={`flex items-center justify-center gap-3 p-4 border font-mono text-[10px] tracking-widest uppercase font-bold cursor-pointer transition-colors ${
-                  resolvedTheme === "dark"
+                className={`flex items-center justify-center gap-3 p-4 border text-sm font-semibold tracking-wide cursor-pointer rounded transition-colors ${resolvedTheme === "dark"
                     ? "border-text-primary bg-bg-subtle border-2"
                     : "border-border-strong hover:bg-bg-subtle"
-                }`}
+                  }`}
               >
-                <Moon className="w-4 h-4" /> DARK
+                <Moon className="w-4 h-4" /> Dark
               </button>
             </div>
-            <p className="text-[10px] font-mono text-text-tertiary mt-3">
-              Current: {(theme || "system").toUpperCase()}
+            <p className="text-xs text-text-tertiary mt-3">
+              Current: {(theme || "system")}
             </p>
           </div>
         </div>
@@ -101,24 +97,24 @@ export default function SettingsPage() {
         {/* Danger Zone */}
         <div className="border border-danger/30 bg-bg-surface">
           <div className="border-b border-danger/30 p-4 bg-danger/5">
-            <h3 className="text-xs font-mono font-bold tracking-widest uppercase text-danger">DANGER ZONE</h3>
+            <h3 className="text-sm font-semibold tracking-wide text-danger">Danger Zone</h3>
           </div>
           <div className="p-4 md:p-6">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 py-3 border border-danger text-danger font-mono text-xs tracking-widest uppercase font-bold hover:bg-danger hover:text-white cursor-pointer transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3 border border-danger text-danger text-sm tracking-wide font-semibold hover:bg-danger hover:text-white cursor-pointer rounded transition-colors"
             >
-              <LogOut className="w-4 h-4" /> TERMINATE SESSION
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
           </div>
         </div>
 
         {/* App Info */}
         <div className="border border-border-subtle bg-bg-surface p-4 text-center">
-          <p className="text-[10px] font-mono text-text-tertiary tracking-widest uppercase">
+          <p className="text-xs font-medium text-text-tertiary tracking-wide">
             AskMyNotes v0.1.0-alpha
           </p>
-          <p className="text-[9px] font-mono text-text-tertiary mt-1">
+          <p className="text-[10px] text-text-tertiary mt-1">
             Next.js 16 • Appwrite • OpenAI
           </p>
         </div>

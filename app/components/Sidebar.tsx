@@ -10,11 +10,11 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { name: "CATALOG", href: "/", icon: Folder },
-  { name: "INGEST", href: "/upload", icon: Upload },
-  { name: "QUERY", href: "/chat", icon: MessageSquare },
-  { name: "VOICE", href: "/voice-chat", icon: Mic },
-  { name: "STUDY", href: "/study", icon: BookOpen },
+  { name: "Dashboard", href: "/", icon: Folder },
+  { name: "Upload", href: "/upload", icon: Upload },
+  { name: "Chat", href: "/chat", icon: MessageSquare },
+  { name: "Voice Chat", href: "/voice-chat", icon: Mic },
+  { name: "Study Mode", href: "/study", icon: BookOpen },
 ];
 
 export default function Sidebar({ onClose }: SidebarProps) {
@@ -44,8 +44,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 flex flex-col overflow-y-auto">
-        <div className="text-[10px] font-mono tracking-widest text-text-tertiary px-4 pt-6 pb-2 uppercase border-b border-border-strong">
-          Primary Indices
+        <div className="text-xs font-semibold text-text-tertiary px-4 pt-6 pb-2 uppercase border-b border-border-strong tracking-wider">
+          Menu
         </div>
         <div className="flex flex-col border-b border-border-strong border-dashed pb-2">
           {navItems.map((item) => {
@@ -55,11 +55,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-4 py-3 text-xs tracking-widest font-mono uppercase border-l-2 ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium border-l-2 transition-colors ${isActive
                     ? "text-text-primary bg-bg-subtle border-l-text-primary"
                     : "text-text-secondary hover:text-text-primary hover:bg-bg-subtle border-l-transparent"
-                }`}
+                  }`}
               >
                 <item.icon
                   className={`w-4 h-4 shrink-0 ${isActive ? "text-text-primary" : "text-text-tertiary"}`}
@@ -73,20 +72,19 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
         {/* System Management */}
         <div className="mt-auto">
-          <div className="text-[10px] font-mono tracking-widest text-text-tertiary px-4 pt-4 pb-2 uppercase border-t border-b border-border-strong">
+          <div className="text-xs font-semibold text-text-tertiary px-4 pt-4 pb-2 uppercase border-t border-b border-border-strong tracking-wider">
             System
           </div>
           <Link
             href="/settings"
             onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 text-xs tracking-widest font-mono uppercase ${
-              pathname === "/settings"
+            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${pathname === "/settings"
                 ? "text-text-primary bg-bg-subtle"
                 : "text-text-secondary hover:text-text-primary hover:bg-bg-subtle"
-            }`}
+              }`}
           >
-            <Settings className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-            CONFIGURATION
+            <Settings className="w-4 h-4 shrink-0 border-transparent" strokeWidth={1.5} />
+            Settings
           </Link>
         </div>
       </nav>
