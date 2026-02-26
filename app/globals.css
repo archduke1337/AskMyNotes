@@ -26,33 +26,43 @@
   --color-neutral-800: #262626;
   --color-neutral-900: #171717;
 
-  /* Semantic / System Colors */
-  --color-bg-app: #ffffff;
+  /* Semantic / System Colors - Solid Grey Background & High Contrast */
+  --color-bg-app: #cfcfcf;
   --color-bg-surface: #ffffff;
-  --color-bg-subtle: #f5f5f5;
+  --color-bg-subtle: #f1f1f1;
 
-  --color-border-subtle: #e5e5e5;
-  --color-border-default: #a3a3a3;
+  --color-border-subtle: #b3b3b3;
+  --color-border-default: #808080;
   --color-border-strong: #000000;
 
   --color-text-primary: #000000;
-  --color-text-secondary: #525252;
-  --color-text-tertiary: #737373;
+  --color-text-secondary: #242424;
+  --color-text-tertiary: #4a4a4a;
 
   --color-accent-blue: #000000;
   --color-danger: #dc2626;
 
-  --font-sans:
-    "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol";
-
-  --font-mono: "Courier New", Courier, monospace;
+  /* Use Next.js automatically injected custom fonts */
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-mono: var(--font-mono), monospace;
 
   /* Strict Layout Constraints (No Shadows) */
   --shadow-sm: none;
   --shadow-nav: none;
   --shadow-card: none;
   --shadow-hover: none;
+
+  /* Scale font-sizes globally to make them bigger */
+  --text-xs: 0.825rem;
+  --text-xs--line-height: 1.15rem;
+  --text-sm: 0.95rem;
+  --text-sm--line-height: 1.35rem;
+  --text-base: 1.05rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.15rem;
+  --text-lg--line-height: 1.6rem;
+  --text-xl: 1.35rem;
+  --text-xl--line-height: 1.85rem;
 }
 
 @layer base {
@@ -62,21 +72,21 @@
     font-family: var(--font-sans);
   }
 
-  /* Dark mode overrides */
+  /* Dark mode overrides (Solid dark grey background & High Contrast) */
   .dark {
-    --color-bg-app: #0a0a0a;
-    --color-bg-surface: #111111;
-    --color-bg-subtle: #1a1a1a;
+    --color-bg-app: #121212;
+    --color-bg-surface: #1e1e1e;
+    --color-bg-subtle: #262626;
 
-    --color-border-subtle: #262626;
-    --color-border-default: #404040;
-    --color-border-strong: #e5e5e5;
+    --color-border-subtle: #333333;
+    --color-border-default: #525252;
+    --color-border-strong: #ffffff;
 
-    --color-text-primary: #f5f5f5;
-    --color-text-secondary: #a3a3a3;
-    --color-text-tertiary: #737373;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #e5e5e5;
+    --color-text-tertiary: #a3a3a3;
 
-    --color-accent-blue: #f5f5f5;
+    --color-accent-blue: #ffffff;
     --color-danger: #ef4444;
   }
 

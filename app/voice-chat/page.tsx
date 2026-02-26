@@ -20,6 +20,10 @@ import { useVoice } from "@/lib/hooks/useVoice";
 import { fetchSubjects, sendVoiceChatMessage } from "@/lib/api";
 import type { Subject } from "@/lib/types";
 import type { ConversationTurn, VoiceChatResponse } from "@/lib/api";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 // ── Message types for the UI ──────────────────────────────────────────
 interface VoiceMessage {
@@ -59,6 +63,31 @@ export default function VoiceChatPage() {
 
      const messagesEndRef = useRef<HTMLDivElement>(null);
      const conversationHistoryRef = useRef<ConversationTurn[]>([]);
+
+     useGSAP(() => {
+          const cards = gsap.utils.toArray<HTMLElement>('.gsap-hover');
+
+          const onEnter = (e: Event) => {
+               const target = e.currentTarget as HTMLElement;
+               gsap.to(target, { y: -2, backgroundColor: "rgba(0,0,0,0.05)", duration: 0.15, ease: "power1.out" });
+          };
+          const onLeave = (e: Event) => {
+               const target = e.currentTarget as HTMLElement;
+               gsap.to(target, { y: 0, backgroundColor: "transparent", duration: 0.15, ease: "power1.out" });
+          };
+
+          cards.forEach((card) => {
+               card.addEventListener("mouseenter", onEnter);
+               card.addEventListener("mouseleave", onLeave);
+          });
+
+          return () => {
+               cards.forEach((card) => {
+                    card.removeEventListener("mouseenter", onEnter);
+                    card.removeEventListener("mouseleave", onLeave);
+               });
+          };
+     }, [messages, activeSubjectId]);
 
      // ── Load subjects ────────────────────────────────────────────────────
      const loadSubjects = useCallback(async () => {
@@ -191,7 +220,7 @@ export default function VoiceChatPage() {
 
      if (!user) {
           return (
-               <div className="flex items-center justify-center h-full font-mono text-xs uppercase tracking-widest text-black/50">
+               <div className="flex items-center justify-center h-full font-mono text-base uppercase tracking-widest text-black/50">
                     Authentication required. Please sign in.
                </div>
           );
@@ -215,7 +244,7 @@ export default function VoiceChatPage() {
                     <div className="border-b border-black">
                          <div className="bg-black text-white px-4 py-2 flex items-center gap-2">
                               <Volume2 className="w-4 h-4" strokeWidth={1.5} />
-                              <span className="text-[10px] font-mono font-bold uppercase tracking-widest">
+                              <span className="text-base font-mono font-bold uppercase tracking-widest">
                                    VOICE TERMINAL
                               </span>
                          </div>
@@ -223,7 +252,7 @@ export default function VoiceChatPage() {
                          <div className="p-4 border-b border-black">
                               <div className="relative border border-black bg-white group hover:bg-black/5">
                                    <select
-                                        className="w-full appearance-none bg-transparent pt-6 pb-2 px-4 text-xs font-bold uppercase tracking-widest focus:outline-none cursor-pointer text-black"
+                                        className="w-full appearance-none bg-transparent pt-6 pb-2 px-4 text-base font-bold uppercase tracking-widest focus:outline-none cursor-pointer text-black"
                                         value={activeSubjectId}
                                         onChange={(e) => handleSubjectChange(e.target.value)}
                                    >
@@ -284,7 +313,7 @@ export default function VoiceChatPage() {
 
                          {/* Status Label */}
                          <div className="text-center">
-                              <p className="text-[10px] font-mono font-bold tracking-widest uppercase text-black">
+                              <p className="text-base font-mono font-bold tracking-widest uppercase text-black">
                                    {isProcessing
                                         ? "PROCESSING QUERY..."
                                         : isListening
@@ -294,7 +323,7 @@ export default function VoiceChatPage() {
                                                   : "PRESS TO SPEAK"}
                               </p>
                               {interimTranscript && (
-                                   <p className="text-[10px] font-mono text-black/50 mt-2 max-w-48 wrap-break-word">
+                                   <p className="text-base font-mono text-black/50 mt-2 max-w-48 wrap-break-word">
                                         &quot;{interimTranscript}&quot;
                                    </p>
                               )}
@@ -318,14 +347,14 @@ export default function VoiceChatPage() {
 
                          {/* Voice error */}
                          {voiceError && (
-                              <div className="flex items-center gap-2 text-[10px] font-mono text-black/60 border border-black/30 px-3 py-2">
+                              <div className="flex items-center gap-2 text-base font-mono text-black/60 border border-black/30 px-3 py-2">
                                    <AlertTriangle className="w-3 h-3 shrink-0" />
                                    {voiceError}
                               </div>
                          )}
 
                          {!sttSupported && (
-                              <p className="text-[10px] font-mono text-black/40 text-center px-4">
+                              <p className="text-base font-mono text-black/40 text-center px-4">
                                    SPEECH RECOGNITION NOT SUPPORTED.
                                    <br />
                                    USE CHROME OR EDGE.
@@ -338,7 +367,7 @@ export default function VoiceChatPage() {
                          {/* Auto-speak toggle */}
                          <button
                               onClick={() => setAutoSpeak(!autoSpeak)}
-                              className="w-full flex items-center justify-between px-3 py-2 border border-black text-[10px] font-mono tracking-widest uppercase hover:bg-black/5 cursor-pointer"
+                              className="w-full flex items-center justify-between px-3 py-2 border border-black text-base font-mono tracking-widest uppercase hover:bg-black/5 cursor-pointer"
                          >
                               <span className="flex items-center gap-2">
                                    {autoSpeak ? (
@@ -354,7 +383,7 @@ export default function VoiceChatPage() {
                          {isSpeaking && (
                               <button
                                    onClick={stopSpeaking}
-                                   className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-black bg-black text-white text-[10px] font-mono tracking-widest uppercase cursor-pointer"
+                                   className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-black bg-black text-white text-base font-mono tracking-widest uppercase cursor-pointer"
                               >
                                    <VolumeX className="w-3 h-3" />
                                    STOP SPEAKING
@@ -365,7 +394,7 @@ export default function VoiceChatPage() {
                          {messages.length > 0 && (
                               <button
                                    onClick={clearConversation}
-                                   className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-black/30 text-black/60 text-[10px] font-mono tracking-widest uppercase hover:bg-black/5 cursor-pointer"
+                                   className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-black/30 text-black/60 text-base font-mono tracking-widest uppercase hover:bg-black/5 cursor-pointer"
                               >
                                    <Trash2 className="w-3 h-3" />
                                    CLEAR SESSION
@@ -380,17 +409,17 @@ export default function VoiceChatPage() {
                     <div className="h-12 border-b border-black flex items-center justify-between px-6 shrink-0 bg-white">
                          <div className="flex items-center gap-3">
                               <div className={`w-3 h-3 ${isListening || isSpeaking || isProcessing ? "bg-black animate-pulse" : "bg-black/30"}`} />
-                              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-black">
+                              <h3 className="text-base font-mono font-bold tracking-widest uppercase text-black">
                                    SYS.VOICE_TEACHER_TERMINAL
                               </h3>
                          </div>
                          <div className="flex items-center gap-4">
                               {activeSubject && (
-                                   <span className="text-[10px] font-mono tracking-widest uppercase text-black/50">
+                                   <span className="text-base font-mono tracking-widest uppercase text-black/50">
                                         SCOPE: {activeSubject.name.toUpperCase()}
                                    </span>
                               )}
-                              <span className="text-[10px] font-mono tracking-widest uppercase text-black/50">
+                              <span className="text-base font-mono tracking-widest uppercase text-black/50">
                                    TURNS: {messages.filter((m) => m.role === "user").length}
                               </span>
                          </div>
@@ -403,10 +432,10 @@ export default function VoiceChatPage() {
                                    <div className="w-16 h-16 border-2 border-black/20 rounded-full flex items-center justify-center mb-6">
                                         <Mic className="w-6 h-6 text-black/30" strokeWidth={1.5} />
                                    </div>
-                                   <p className="text-[10px] font-mono tracking-widest uppercase text-black/40 mb-2">
+                                   <p className="text-base font-mono tracking-widest uppercase text-black/40 mb-2">
                                         VOICE TEACHER READY
                                    </p>
-                                   <p className="text-[10px] font-mono text-black/30 max-w-sm leading-relaxed">
+                                   <p className="text-base font-mono text-black/30 max-w-sm leading-relaxed">
                                         PRESS THE MICROPHONE BUTTON AND ASK A QUESTION ABOUT YOUR NOTES.
                                         <br />
                                         FOLLOW-UP QUESTIONS ARE SUPPORTED WITHIN THE SAME SESSION.
@@ -417,32 +446,32 @@ export default function VoiceChatPage() {
                          {messages.map((msg) =>
                               msg.role === "user" ? (
                                    <div key={msg.id} className="flex justify-start pl-12 relative group">
-                                        <div className="absolute left-0 top-0 text-[10px] font-mono text-black/30 tracking-widest w-12 text-center pt-1 border-r border-black mr-2">
+                                        <div className="absolute left-0 top-0 text-base font-mono text-black/30 tracking-widest w-12 text-center pt-1 border-r border-black mr-2">
                                              <Mic className="w-3 h-3 mx-auto mb-1" />
                                              USR
                                         </div>
-                                        <div className="border border-black bg-black text-white p-4 max-w-2xl text-xs font-mono uppercase tracking-wider leading-relaxed">
+                                        <div className="border border-black bg-black text-white p-4 max-w-2xl text-base font-mono uppercase tracking-wider leading-relaxed">
                                              <span className="text-white/50 mr-2">&gt;</span>
                                              {msg.text}
                                         </div>
                                    </div>
                               ) : (
                                    <div key={msg.id} className="flex justify-start pl-12 relative group">
-                                        <div className="absolute left-0 top-0 text-[10px] font-mono text-black tracking-widest w-12 text-center pt-1 border-r border-black mr-2 font-bold flex flex-col items-center">
+                                        <div className="absolute left-0 top-0 text-base font-mono text-black tracking-widest w-12 text-center pt-1 border-r border-black mr-2 font-bold flex flex-col items-center">
                                              <Sparkles className="w-3 h-3 mb-1" />
                                              SYS
                                         </div>
 
-                                        <div className="border border-black bg-white p-6 max-w-4xl text-xs font-mono tracking-wider leading-relaxed">
+                                        <div className="border border-black bg-white p-6 max-w-4xl text-base font-mono tracking-wider leading-relaxed">
                                              {/* Header with confidence */}
                                              <div className="flex items-center justify-between border-b border-black pb-4 mb-4">
-                                                  <span className="bg-black text-white px-2 py-1 text-[9px] tracking-widest font-bold">
+                                                  <span className="bg-black text-white px-2 py-1 text-[10px] tracking-widest font-bold">
                                                        VOICE_RESPONSE
                                                   </span>
                                                   {msg.confidence && (
                                                        <div className="flex items-center gap-2 border border-black px-2 py-1 bg-black/5">
                                                             <CheckCircle2 className="w-3 h-3 text-black" strokeWidth={2} />
-                                                            <span className="text-[9px] font-bold tracking-widest font-mono shrink-0">
+                                                            <span className="text-[10px] font-bold tracking-widest font-mono shrink-0">
                                                                  CONFIDENCE: {msg.confidence.toUpperCase()}
                                                             </span>
                                                        </div>
@@ -458,19 +487,19 @@ export default function VoiceChatPage() {
                                                        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-black border-dashed">
                                                             {msg.citations.map((cit, i) => (
                                                                  <div key={i} className="border border-black p-3">
-                                                                      <p className="text-[9px] font-bold text-black/50 uppercase tracking-widest mb-2 border-b border-black pb-1">
+                                                                      <p className="text-[10px] font-bold text-black/50 uppercase tracking-widest mb-2 border-b border-black pb-1">
                                                                            {cit.snippet
                                                                                 ? `EVIDENCE NO.${i + 1}`
                                                                                 : `CITATION REF NO.${i + 1}`}
                                                                       </p>
                                                                       {cit.snippet && (
-                                                                           <p className="text-[10px] text-black italic leading-normal mb-2">
+                                                                           <p className="text-base text-black italic leading-normal mb-2">
                                                                                 &quot;{cit.snippet}&quot;
                                                                            </p>
                                                                       )}
                                                                       <div className="flex items-center gap-2 text-black/70 mt-auto">
                                                                            <FileText className="w-3 h-3 shrink-0" />
-                                                                           <span className="text-[9px] break-all uppercase">
+                                                                           <span className="text-[10px] break-all uppercase">
                                                                                 {cit.fileName} // {cit.reference}
                                                                            </span>
                                                                       </div>
@@ -484,7 +513,7 @@ export default function VoiceChatPage() {
                                              {ttsSupported && (
                                                   <button
                                                        onClick={() => speak(msg.text)}
-                                                       className="mt-4 flex items-center gap-2 text-[9px] font-mono tracking-widest uppercase text-black/50 hover:text-black border border-black/20 hover:border-black px-3 py-1.5 cursor-pointer"
+                                                       className="mt-4 flex items-center gap-2 text-[10px] font-mono tracking-widest uppercase text-black/50 hover:text-black border border-black/20 hover:border-black px-3 py-1.5 cursor-pointer"
                                                   >
                                                        <Volume2 className="w-3 h-3" />
                                                        REPLAY AUDIO
@@ -498,14 +527,14 @@ export default function VoiceChatPage() {
                          {/* Processing indicator */}
                          {isProcessing && (
                               <div className="flex justify-start pl-12 relative">
-                                   <div className="absolute left-0 top-0 text-[10px] font-mono text-black tracking-widest w-12 text-center pt-1 border-r border-black mr-2 font-bold flex flex-col items-center">
+                                   <div className="absolute left-0 top-0 text-base font-mono text-black tracking-widest w-12 text-center pt-1 border-r border-black mr-2 font-bold flex flex-col items-center">
                                         <Sparkles className="w-3 h-3 mb-1 animate-spin" />
                                         SYS
                                    </div>
                                    <div className="border border-black bg-white p-6 max-w-4xl">
                                         <div className="flex items-center gap-3">
                                              <Loader2 className="w-4 h-4 animate-spin text-black" />
-                                             <span className="text-[10px] font-mono tracking-widest uppercase text-black/50">
+                                             <span className="text-base font-mono tracking-widest uppercase text-black/50">
                                                   ANALYZING NOTES & GENERATING RESPONSE...
                                              </span>
                                         </div>
@@ -529,7 +558,7 @@ export default function VoiceChatPage() {
                               }}
                               className="flex items-center border border-black relative group focus-within:ring-1 focus-within:ring-black focus-within:bg-black/5 bg-white h-14"
                          >
-                              <div className="h-full border-r border-black flex items-center px-4 font-mono font-bold text-[10px] tracking-widest text-black uppercase w-24">
+                              <div className="h-full border-r border-black flex items-center px-4 font-mono font-bold text-base tracking-widest text-black uppercase w-24">
                                    INPUT
                                    <span className="animate-ping ml-2 inline-flex h-1.5 w-1.5 bg-black" />
                               </div>
@@ -542,7 +571,7 @@ export default function VoiceChatPage() {
                                              ? `TYPE OR SPEAK: ${activeSubject.name.toUpperCase()}...`
                                              : "SELECT A SUBJECT FIRST..."
                                    }
-                                   className="flex-1 h-full bg-transparent px-4 text-xs font-mono uppercase text-black focus:outline-none placeholder:text-black/30 disabled:opacity-30"
+                                   className="flex-1 h-full bg-transparent px-4 text-base font-mono uppercase text-black focus:outline-none placeholder:text-black/30 disabled:opacity-30"
                               />
                               <button
                                    type="submit"

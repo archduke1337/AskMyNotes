@@ -33,7 +33,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         </button>
         <div className="flex items-center gap-2">
           <Hash className="w-4 h-4 text-text-tertiary hidden md:block" strokeWidth={1.5} />
-          <h2 className="text-[10px] sm:text-xs font-mono tracking-widest uppercase font-bold text-text-primary">
+          <h2 className="text-base sm:text-base font-mono tracking-widest uppercase font-bold text-text-primary">
             DIRECTORY ROOT
           </h2>
         </div>
@@ -42,7 +42,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
       <div className="flex h-full flex-1 min-w-0">
         {/* Search */}
         <div className="hidden md:flex flex-1 items-center border-l border-border-strong relative group px-4">
-          <label htmlFor="search-directory" className="text-[10px] font-mono absolute -top-[5px] left-3 bg-bg-surface px-1 leading-none uppercase text-text-tertiary tracking-wider shadow-[0_0_0_2px_var(--bg-surface)]">
+          <label htmlFor="search-directory" className="text-base font-mono absolute -top-[5px] left-3 bg-bg-surface px-1 leading-none uppercase text-text-tertiary tracking-wider shadow-[0_0_0_2px_var(--bg-surface)]">
             Query Catalog
           </label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" strokeWidth={1.5} />
@@ -50,21 +50,21 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             id="search-directory"
             type="text"
             placeholder="FIND RECORD..."
-            className="w-full h-8 bg-transparent border-b border-border-subtle pl-7 pr-4 py-1 text-xs font-mono focus:outline-none focus:border-border-strong uppercase placeholder:text-text-tertiary text-text-primary"
+            className="w-full h-8 bg-transparent border-b border-border-subtle pl-7 pr-4 py-1 text-base font-mono focus:outline-none focus:border-border-strong uppercase placeholder:text-text-tertiary text-text-primary"
           />
         </div>
 
         {/* User Abstract Area */}
         <div className="flex items-center h-full border-l border-border-strong shrink-0 px-2 md:px-4 group relative">
           <div className="flex items-center gap-2 md:gap-3 text-left">
-            <div className="w-6 h-6 bg-text-primary flex items-center justify-center text-bg-app font-mono text-[10px] tracking-widest font-bold shrink-0">
+            <div className="w-6 h-6 bg-text-primary flex items-center justify-center text-bg-app font-mono text-base tracking-widest font-bold shrink-0">
               {initials}
             </div>
             <div className="hidden md:block w-32 truncate">
-              <p className="text-[10px] font-mono font-bold text-text-primary uppercase leading-none mb-0.5 tracking-wider truncate">
+              <p className="text-base font-mono font-bold text-text-primary uppercase leading-none mb-0.5 tracking-wider truncate">
                 OP: {user?.name || "UNKNOWN NODE"}
               </p>
-              <p className="text-[9px] font-mono text-text-tertiary uppercase leading-none tracking-widest truncate">
+              <p className="text-[10px] font-mono text-text-tertiary uppercase leading-none tracking-widest truncate">
                 ACCESS: SCHOLAR
               </p>
             </div>
