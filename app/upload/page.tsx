@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { UploadCloud, FileText, ChevronDown, Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { fetchSubjects, fetchNoteFiles, uploadNoteFile, deleteNoteFile } from "@/lib/api";
 import type { Subject, NoteFile } from "@/lib/types";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
-function UploadContent() {
+gsap.registerPlugin(useGSAP);
+
+export default function UploadPage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,6 +26,31 @@ function UploadContent() {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  useGSAP(() => {
+    const cards = gsap.utils.toArray<HTMLElement>('.gsap-hover');
+
+    const onEnter = (e: Event) => {
+      const target = e.currentTarget as HTMLElement;
+      gsap.to(target, { y: -2, backgroundColor: "var(--color-bg-subtle)", duration: 0.15, ease: "power1.out" });
+    };
+    const onLeave = (e: Event) => {
+      const target = e.currentTarget as HTMLElement;
+      gsap.to(target, { y: 0, backgroundColor: "transparent", duration: 0.15, ease: "power1.out" });
+    };
+
+    cards.forEach((card) => {
+      card.addEventListener("mouseenter", onEnter);
+      card.addEventListener("mouseleave", onLeave);
+    });
+
+    return () => {
+      cards.forEach((card) => {
+        card.removeEventListener("mouseenter", onEnter);
+        card.removeEventListener("mouseleave", onLeave);
+      });
+    };
+  }, [files, activeSubjectId, dragOver, uploading]);
 
   // Load subjects
   const loadSubjects = useCallback(async () => {
@@ -127,14 +156,14 @@ function UploadContent() {
       />
 
       <div className="h-12 border-b border-border-strong flex items-center justify-between px-4 md:px-6 shrink-0 bg-bg-surface relative z-10">
-        <div className="text-xs font-semibold tracking-wide text-text-primary">
-          Upload Documents
+        <div className="text-base font-mono font-bold tracking-widest uppercase">
+          PROCESS: DATA INGESTION // FORM.01
         </div>
       </div>
 
       <div className="p-4 md:p-8 w-full max-w-4xl mx-auto space-y-6 md:space-y-8 relative z-10 flex-1 overflow-y-auto">
         {error && (
-          <div className="flex items-center gap-2 border border-danger/30 bg-danger/5 p-3 text-[10px] font-mono text-danger">
+          <div className="flex items-center gap-2 border border-danger/30 bg-danger/5 p-3 text-base font-mono text-danger">
             <AlertTriangle className="w-3 h-3 shrink-0" />
             {error}
             <button onClick={() => setError("")} className="ml-auto text-danger hover:underline cursor-pointer">DISMISS</button>
@@ -143,24 +172,24 @@ function UploadContent() {
 
         <div className="border border-border-strong bg-bg-surface">
           <div className="border-b border-border-strong p-4 bg-text-primary text-bg-app">
-            <h2 className="text-sm font-semibold tracking-wide">Upload File (PDF / TXT)</h2>
+            <h2 className="text-base font-mono font-bold tracking-widest uppercase">UPLOAD NEW RECORD (PDF / TXT)</h2>
           </div>
 
           <div className="p-4 md:p-6 space-y-6 md:space-y-8">
             {/* Subject Selector */}
             <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] border border-border-strong">
-              <div className="p-3 md:p-4 border-b md:border-b-0 md:border-r border-border-strong bg-bg-subtle flex items-center justify-center text-sm font-semibold tracking-wide text-text-secondary">
-                Subject
+              <div className="p-3 md:p-4 border-b md:border-b-0 md:border-r border-border-strong bg-bg-subtle flex items-center justify-center text-base font-mono font-bold uppercase tracking-widest">
+                TARGET INDEX
               </div>
               <div className="relative">
                 <select
-                  className="w-full h-full p-3 md:p-4 appearance-none bg-transparent text-sm font-bold uppercase tracking-widest focus:outline-none cursor-pointer"
+                  className="w-full h-full p-3 md:p-4 appearance-none bg-transparent text-base font-bold uppercase tracking-widest focus:outline-none cursor-pointer"
                   value={activeSubjectId}
                   onChange={(e) => setActiveSubjectId(e.target.value)}
                 >
-                  {subjects.length === 0 && <option value="">No subjects available</option>}
+                  {subjects.length === 0 && <option value="">NO SUBJECTS AVAILABLE</option>}
                   {subjects.map((s) => (
-                    <option key={s.$id} value={s.$id}>{s.name}</option>
+                    <option key={s.$id} value={s.$id}>{s.name.toUpperCase()}</option>
                   ))}
                 </select>
                 <div className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -175,7 +204,7 @@ function UploadContent() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border border-dashed cursor-pointer flex flex-col items-center justify-center py-16 md:py-24 relative overflow-hidden transition-colors ${dragOver ? "border-text-primary bg-bg-subtle" : "border-border-strong hover:bg-bg-subtle"
+              className={`gsap-hover border border-dashed cursor-pointer flex flex-col items-center justify-center py-16 md:py-24 relative overflow-hidden transition-colors ${dragOver ? "border-text-primary bg-bg-subtle" : "border-border-strong cursor-pointer"
                 } ${uploading ? "pointer-events-none opacity-60" : ""} ${!activeSubjectId ? "opacity-30 pointer-events-none" : ""}`}
             >
               <input
@@ -189,17 +218,17 @@ function UploadContent() {
               {uploading ? (
                 <>
                   <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                  <p className="text-sm font-medium tracking-wide">Uploading... {uploadProgress}%</p>
+                  <p className="text-base font-mono tracking-widest uppercase">UPLOADING... {uploadProgress}%</p>
                 </>
               ) : (
                 <>
                   <div className="w-12 h-12 border border-border-strong flex items-center justify-center mb-6 bg-bg-surface">
                     <UploadCloud className="w-5 h-5" strokeWidth={1.5} />
                   </div>
-                  <h3 className="font-semibold text-sm tracking-wide">Drag & Drop Files Here</h3>
-                  <p className="text-xs text-text-tertiary mt-2 text-center max-w-sm leading-relaxed">
-                    Or click to browse.<br />
-                    Max size: 50MB (PDF, TXT)
+                  <h3 className="font-bold text-base uppercase tracking-widest">TRANSMIT FILES HERE</h3>
+                  <p className="text-base font-mono text-text-tertiary uppercase mt-2 tracking-widest text-center max-w-sm leading-relaxed">
+                    DRAG & DROP OR CLICK TO BROWSE.<br />
+                    MAX SIZE: 50MB // FORMATS: .PDF .TXT
                   </p>
                 </>
               )}
@@ -211,9 +240,9 @@ function UploadContent() {
         {activeSubjectId && (
           <div className="border border-border-strong bg-bg-surface">
             <div className="border-b border-border-strong p-2 bg-bg-subtle flex justify-between items-center">
-              <h3 className="text-sm font-semibold tracking-wide ml-2">Uploaded Files</h3>
-              <span className="text-xs font-medium text-text-tertiary px-2 tracking-wide">
-                {loadingFiles ? "..." : `${files.length} files`}
+              <h3 className="text-base font-mono font-bold tracking-widest uppercase ml-2">UPLOAD_SESSION_LOG</h3>
+              <span className="text-base font-mono text-text-tertiary px-2 tracking-widest">
+                {loadingFiles ? "..." : `${files.length} RECORD(S)`}
               </span>
             </div>
 
@@ -222,22 +251,22 @@ function UploadContent() {
                 <Loader2 className="w-4 h-4 animate-spin text-text-tertiary" />
               </div>
             ) : files.length === 0 ? (
-              <div className="text-center py-8 text-sm font-medium text-text-tertiary">
-                No files uploaded yet
+              <div className="text-center py-8 text-base font-mono text-text-tertiary tracking-widest uppercase">
+                NO FILES UPLOADED YET
               </div>
             ) : (
-              <table className="w-full text-left border-collapse font-sans text-xs">
+              <table className="w-full text-left border-collapse font-sans text-base">
                 <tbody className="font-mono">
                   {files.map((file) => (
-                    <tr key={file.$id} className="border-b border-border-strong last:border-b-0 hover:bg-bg-subtle group">
+                    <tr key={file.$id} className="gsap-hover border-b border-border-strong last:border-b-0 cursor-default group">
                       <td className="w-10 md:w-12 border-r border-border-strong p-3 text-center text-text-tertiary group-hover:text-text-primary">
                         <FileText className="w-4 h-4 mx-auto" />
                       </td>
-                      <td className="p-3 border-r border-border-strong font-medium text-sm truncate max-w-30 md:max-w-none">
+                      <td className="p-3 border-r border-border-strong font-bold uppercase tracking-widest text-base truncate max-w-[120px] md:max-w-none">
                         {file.fileName}
                       </td>
-                      <td className="p-3 border-r border-border-strong text-xs text-text-tertiary w-20 text-right border-dashed hidden md:table-cell uppercase font-mono">
-                        {file.fileType}
+                      <td className="p-3 border-r border-border-strong text-base text-text-tertiary w-20 text-right border-dashed hidden md:table-cell">
+                        {file.fileType.toUpperCase()}
                       </td>
                       <td className="w-10 md:w-12 p-3 text-center">
                         <button
@@ -261,13 +290,5 @@ function UploadContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function UploadPage() {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>}>
-      <UploadContent />
-    </Suspense>
   );
 }

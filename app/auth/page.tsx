@@ -65,7 +65,7 @@ export default function AuthPage() {
           <div className="relative w-48 h-12 mx-auto mb-4">
             <Image src="/image.png" alt="AskMyNotes" fill className="object-contain" sizes="192px" />
           </div>
-          <p className="text-[10px] font-mono tracking-widest text-text-tertiary uppercase">
+          <p className="text-base font-mono tracking-widest text-text-tertiary uppercase">
             {mode === "login" ? "AUTHENTICATION TERMINAL" : "NEW OPERATOR REGISTRATION"}
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function AuthPage() {
           <button
             type="button"
             onClick={() => { setMode("login"); setError(""); }}
-            className={`flex-1 py-3 text-[10px] font-mono tracking-widest uppercase font-bold flex items-center justify-center gap-2 cursor-pointer border-b-2 transition-colors ${
+            className={`flex-1 py-3 text-base font-mono tracking-widest uppercase font-bold flex items-center justify-center gap-2 cursor-pointer border-b-2 transition-colors ${
               mode === "login" ? "border-text-primary text-text-primary" : "border-transparent text-text-tertiary hover:text-text-primary"
             }`}
           >
@@ -84,7 +84,7 @@ export default function AuthPage() {
           <button
             type="button"
             onClick={() => { setMode("register"); setError(""); }}
-            className={`flex-1 py-3 text-[10px] font-mono tracking-widest uppercase font-bold flex items-center justify-center gap-2 cursor-pointer border-b-2 transition-colors ${
+            className={`flex-1 py-3 text-base font-mono tracking-widest uppercase font-bold flex items-center justify-center gap-2 cursor-pointer border-b-2 transition-colors ${
               mode === "register" ? "border-text-primary text-text-primary" : "border-transparent text-text-tertiary hover:text-text-primary"
             }`}
           >
@@ -95,7 +95,7 @@ export default function AuthPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="flex items-center gap-2 border border-danger/30 bg-danger/5 p-3 text-[10px] font-mono text-danger">
+            <div className="flex items-center gap-2 border border-danger/30 bg-danger/5 p-3 text-base font-mono text-danger">
               <AlertTriangle className="w-3 h-3 shrink-0" />
               {error}
             </div>
@@ -111,7 +111,7 @@ export default function AuthPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-4 pb-3 pt-1 text-sm font-mono bg-transparent focus:outline-none"
+                className="w-full px-4 pb-3 pt-1 text-base font-mono bg-transparent focus:outline-none"
                 placeholder="Enter your name..."
               />
             </div>
@@ -126,7 +126,7 @@ export default function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 pb-3 pt-1 text-sm font-mono bg-transparent focus:outline-none"
+              className="w-full px-4 pb-3 pt-1 text-base font-mono bg-transparent focus:outline-none"
               placeholder="operator@domain.com"
             />
           </div>
@@ -141,7 +141,7 @@ export default function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-4 pb-3 pt-1 text-sm font-mono bg-transparent focus:outline-none"
+              className="w-full px-4 pb-3 pt-1 text-base font-mono bg-transparent focus:outline-none"
               placeholder="••••••••"
             />
           </div>
@@ -149,7 +149,7 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 bg-text-primary text-bg-app font-mono text-xs tracking-widest uppercase font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 cursor-pointer"
+            className="w-full py-4 bg-text-primary text-bg-app font-mono text-base tracking-widest uppercase font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 cursor-pointer"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />

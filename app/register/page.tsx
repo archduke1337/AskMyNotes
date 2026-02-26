@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 export default function RegisterPage() {
      const { register } = useAuth();
@@ -12,68 +15,94 @@ export default function RegisterPage() {
      const [name, setName] = useState("");
      const [error, setError] = useState("");
      const [isSubmitting, setIsSubmitting] = useState(false);
+     const containerRef = useRef<HTMLDivElement>(null);
+
+     useGSAP(
+          () => {
+               // Fast, rigid terminal boot sequence
+               gsap.fromTo(
+                    containerRef.current,
+                    { opacity: 0, y: 10 },
+                    { opacity: 1, y: 0, duration: 0.15, ease: "power2.out" }
+               );
+
+               gsap.fromTo(
+                    ".gsap-reveal",
+                    { opacity: 0, x: -10 },
+                    {
+                         opacity: 1,
+                         x: 0,
+                         duration: 0.15,
+                         stagger: 0.05,
+                         ease: "power2.out",
+                         delay: 0.1,
+                    }
+               );
+          },
+          { scope: containerRef }
+     );
 
      const handleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
           setError("");
           setIsSubmitting(true);
           try {
-               await register(email, password, name || "Unnamed User");
+               await register(email, password, name || "Unnamed Node");
           } catch (err: unknown) {
-               setError(err instanceof Error ? err.message : "Failed to sign up.");
+               setError(err instanceof Error ? err.message : "Failed to initialize record.");
                setIsSubmitting(false);
           }
      };
 
      return (
-          <div className="flex flex-col items-center justify-center h-full bg-white relative font-sans p-4">
+          <div className="flex flex-col items-center justify-center h-full bg-bg-app relative font-sans p-4">
                <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
                     style={{ backgroundImage: "linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)", backgroundSize: "64px 64px" }}>
                </div>
 
-               <div className="w-full max-w-sm border border-black bg-white z-10 shadow-[4px_4px_0_0_#000]">
-                    <div className="border-b border-black p-4 bg-black text-white">
-                         <h1 className="text-sm tracking-wide font-semibold text-center">Sign up</h1>
+               <div ref={containerRef} className="w-full max-w-sm border border-border-strong bg-white z-10 opacity-0 relative shadow-[4px_4px_0_0_#000]">
+                    <div className="border-b border-border-strong p-4 bg-black text-white">
+                         <h1 className="font-mono text-base tracking-widest uppercase font-bold text-center">REGISTRY // INITIALIZATION</h1>
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-6 space-y-6">
                          {error && (
-                              <div className="p-3 border border-black bg-black text-white text-xs font-semibold tracking-wide">
-                                   Error: {error}
+                              <div className="p-3 border border-border-strong bg-black text-white text-base font-mono uppercase tracking-wide">
+                                   ERROR: {error}
                               </div>
                          )}
 
-                         <div className="space-y-2">
-                              <label className="text-xs font-semibold tracking-wide text-black/60 block">Name</label>
+                         <div className="space-y-2 gsap-reveal">
+                              <label className="text-base font-mono tracking-widest uppercase text-text-tertiary block">Designation (Name)</label>
                               <input
                                    type="text"
                                    value={name}
                                    onChange={(e) => setName(e.target.value)}
-                                   className="w-full border border-black p-3 text-sm focus:outline-none focus:ring-1 focus:ring-black rounded-none bg-white placeholder:text-black/30"
-                                   placeholder="John Doe"
+                                   className="w-full border border-border-strong p-3 text-base font-mono uppercase focus:outline-none focus:ring-1 focus:ring-black rounded-none bg-white"
+                                   placeholder="JOHN DOE"
                                    required
                               />
                          </div>
 
-                         <div className="space-y-2">
-                              <label className="text-xs font-semibold tracking-wide text-black/60 block">Email</label>
+                         <div className="space-y-2 gsap-reveal">
+                              <label className="text-base font-mono tracking-widest uppercase text-text-tertiary block">Identificator (Email)</label>
                               <input
                                    type="email"
                                    value={email}
                                    onChange={(e) => setEmail(e.target.value)}
-                                   className="w-full border border-black p-3 text-sm focus:outline-none focus:ring-1 focus:ring-black rounded-none bg-white placeholder:text-black/30"
-                                   placeholder="you@example.com"
+                                   className="w-full border border-border-strong p-3 text-base font-mono uppercase focus:outline-none focus:ring-1 focus:ring-black rounded-none bg-white"
+                                   placeholder="UID@DOMAIN.COM"
                                    required
                               />
                          </div>
 
-                         <div className="space-y-2">
-                              <label className="text-xs font-semibold tracking-wide text-black/60 block">Password</label>
+                         <div className="space-y-2 gsap-reveal">
+                              <label className="text-base font-mono tracking-widest uppercase text-text-tertiary block">Passcode</label>
                               <input
                                    type="password"
                                    value={password}
                                    onChange={(e) => setPassword(e.target.value)}
-                                   className="w-full border border-black p-3 text-sm focus:outline-none focus:ring-1 focus:ring-black rounded-none bg-white placeholder:text-black/30"
+                                   className="w-full border border-border-strong p-3 text-base font-mono focus:outline-none focus:ring-1 focus:ring-black rounded-none bg-white"
                                    placeholder="••••••••"
                                    minLength={8}
                                    required
@@ -83,17 +112,17 @@ export default function RegisterPage() {
                          <button
                               type="submit"
                               disabled={isSubmitting}
-                              className="w-full p-4 border border-black bg-white text-black font-semibold tracking-wide text-sm hover:bg-black hover:text-white transition-colors disabled:opacity-50 flex justify-center items-center h-12"
+                              className="gsap-reveal w-full p-4 border border-border-strong bg-white text-text-primary font-bold uppercase tracking-widest text-base hover:bg-black hover:text-white transition-none disabled:opacity-50 flex justify-center items-center h-12"
                          >
-                              {isSubmitting ? <Loader2 className="animate-spin w-4 h-4 text-current" /> : "Sign up"}
+                              {isSubmitting ? <span className="animate-ping inline-flex h-2 w-2 bg-current" /> : "ESTABLISH NODE"}
                          </button>
                     </form>
 
-                    <div className="border-t border-black p-4 text-center">
-                         <p className="text-xs font-semibold tracking-wide text-black/60">
-                              Already have an account?{" "}
-                              <Link href="/login" className="text-black font-semibold hover:underline hover:bg-black/5 px-2 py-1 transition-colors border border-transparent hover:border-black rounded">
-                                   Sign in
+                    <div className="border-t border-border-strong p-4 text-center">
+                         <p className="text-base font-mono tracking-widest text-text-tertiary uppercase">
+                              ALREADY INITIALIZED?{" "}
+                              <Link href="/login" className="text-text-primary font-bold hover:underline hover:bg-black/5 px-2 py-1 transition-none border border-transparent hover:border-black">
+                                   AUTHENTICATE
                               </Link>
                          </p>
                     </div>

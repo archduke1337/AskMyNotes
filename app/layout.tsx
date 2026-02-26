@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./components/Providers";
 import AppShell from "./components/AppShell";
 
-const inter = Inter({
-  variable: "--font-inter",
+const outfit = Outfit({
+  variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+const jbMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -21,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased font-sans h-screen w-full overflow-hidden flex bg-bg-app text-text-primary`}>
+      <body className={`${outfit.variable} ${jbMono.variable} antialiased font-sans h-screen w-full overflow-hidden flex bg-bg-app text-text-primary`}>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

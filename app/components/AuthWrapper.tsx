@@ -27,7 +27,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
           return (
                <div className="flex flex-col h-screen w-full items-center justify-center bg-white border-16 border-black p-8 font-sans">
                     <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mb-8"></div>
-                    <p className="font-mono text-xs font-bold uppercase tracking-widest text-black">
+                    <p className="font-mono text-base font-bold uppercase tracking-widest text-black">
                          INITIALIZING SECURE SESSION...
                     </p>
                </div>

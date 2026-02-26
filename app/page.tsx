@@ -6,6 +6,10 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { fetchSubjects, createSubject, deleteSubject, fetchNoteFiles } from "@/lib/api";
 import type { Subject } from "@/lib/types";
 import Link from "next/link";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -17,6 +21,31 @@ export default function Dashboard() {
   const [showCreate, setShowCreate] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  useGSAP(() => {
+    const cards = gsap.utils.toArray<HTMLElement>('.gsap-hover');
+
+    const onEnter = (e: Event) => {
+      const target = e.currentTarget as HTMLElement;
+      gsap.to(target, { y: -2, backgroundColor: "var(--color-bg-subtle)", duration: 0.15, ease: "power1.out" });
+    };
+    const onLeave = (e: Event) => {
+      const target = e.currentTarget as HTMLElement;
+      gsap.to(target, { y: 0, backgroundColor: "transparent", duration: 0.15, ease: "power1.out" });
+    };
+
+    cards.forEach((card) => {
+      card.addEventListener("mouseenter", onEnter);
+      card.addEventListener("mouseleave", onLeave);
+    });
+
+    return () => {
+      cards.forEach((card) => {
+        card.removeEventListener("mouseenter", onEnter);
+        card.removeEventListener("mouseleave", onLeave);
+      });
+    };
+  }, [subjects, showCreate]);
 
   const loadSubjects = useCallback(async () => {
     if (!user) return;
@@ -97,17 +126,17 @@ export default function Dashboard() {
       />
 
       <div className="h-12 border-b border-border-strong flex items-center justify-between px-4 md:px-6 shrink-0 bg-bg-surface relative">
-        <div className="text-xs font-semibold tracking-wide text-text-primary">
-          Dashboard
+        <div className="text-base font-mono font-bold tracking-widest uppercase">
+          INDEX: SUBJECT LISTING // LOCAL.REGISTRY
         </div>
-        <div className="text-xs font-medium text-text-tertiary">
-          {subjects.length} Subjects
+        <div className="text-base font-mono text-text-tertiary tracking-widest uppercase">
+          RECORDS: {String(subjects.length).padStart(3, "0")} ACTIVE
         </div>
       </div>
 
       <div className="p-4 md:p-8 w-full max-w-6xl mx-auto space-y-8 relative flex-1 overflow-y-auto">
         {error && (
-          <div className="border border-danger/30 bg-danger/5 p-3 text-[10px] font-mono text-danger">
+          <div className="border border-danger/30 bg-danger/5 p-3 text-base font-mono text-danger">
             {error}
           </div>
         )}
@@ -122,32 +151,32 @@ export default function Dashboard() {
             <div className="hidden md:block">
               <table className="w-full text-left border-collapse border border-border-strong font-sans bg-bg-surface">
                 <thead>
-                  <tr className="border-b border-border-strong text-[10px] font-mono uppercase bg-text-primary text-bg-app">
-                    <th className="py-2 px-4 border-r border-bg-app/20 font-semibold text-sm w-16">#</th>
-                    <th className="py-2 px-4 border-r border-bg-app/20 font-semibold text-sm">Subject Name</th>
-                    <th className="py-2 px-4 border-r border-bg-app/20 font-semibold text-sm text-center w-32">Files</th>
-                    <th className="py-2 px-4 border-r border-bg-app/20 font-semibold text-sm w-40">Last Modified</th>
-                    <th className="py-2 px-4 font-semibold text-sm w-48 text-center">Actions</th>
+                  <tr className="border-b border-border-strong text-base font-mono uppercase bg-text-primary text-bg-app">
+                    <th className="py-2 px-4 border-r border-bg-app/20 font-bold tracking-widest w-16">ID NO.</th>
+                    <th className="py-2 px-4 border-r border-bg-app/20 font-bold tracking-widest">SUBJECT CLASSIFICATION</th>
+                    <th className="py-2 px-4 border-r border-bg-app/20 font-bold tracking-widest text-center w-32">VOLUMES</th>
+                    <th className="py-2 px-4 border-r border-bg-app/20 font-bold tracking-widest w-40">LAST MODIFIED</th>
+                    <th className="py-2 px-4 font-bold tracking-widest w-48 text-center">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="text-xs">
+                <tbody className="text-base">
                   {subjects.map((subject, idx) => (
-                    <tr key={subject.$id} className="border-b border-border-strong hover:bg-bg-subtle cursor-default">
-                      <td className="py-4 px-4 border-r border-border-strong text-text-tertiary text-sm">
-                        {idx + 1}
+                    <tr key={subject.$id} className="gsap-hover border-b border-border-strong cursor-default">
+                      <td className="py-4 px-4 border-r border-border-strong font-mono text-text-tertiary tracking-widest text-base">
+                        #{String(idx + 1).padStart(2, "0")}
                       </td>
                       <td className="py-4 px-4 border-r border-border-strong">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 border border-border-strong flex items-center justify-center shrink-0">
                             <Folder className="w-4 h-4" strokeWidth={1.5} />
                           </div>
-                          <h3 className="font-medium text-sm">{subject.name}</h3>
+                          <h3 className="font-bold uppercase tracking-wider text-base">{subject.name}</h3>
                         </div>
                       </td>
                       <td className="py-4 px-4 border-r border-border-strong text-center font-mono font-bold border-dashed">
                         {fileCounts[subject.$id] ?? "–"}
                       </td>
-                      <td className="py-4 px-4 border-r border-border-strong text-sm text-text-tertiary">
+                      <td className="py-4 px-4 border-r border-border-strong font-mono text-base text-text-tertiary uppercase">
                         {formatDate(subject.$updatedAt || subject.$createdAt)}
                       </td>
                       <td className="py-4 px-4">
@@ -185,13 +214,13 @@ export default function Dashboard() {
                   {!showCreate ? (
                     <tr
                       onClick={() => subjects.length < 3 && setShowCreate(true)}
-                      className={`border-b border-border-default hover:bg-bg-subtle cursor-pointer group ${subjects.length >= 3 ? "opacity-30 cursor-not-allowed" : ""}`}
+                      className={`gsap-hover border-b border-border-default cursor-pointer group ${subjects.length >= 3 ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
                     >
                       <td className="py-4 px-4 border-r border-border-strong text-center font-mono text-text-tertiary">-</td>
-                      <td colSpan={4} className="py-4 px-4 text-center font-bold uppercase tracking-widest text-[10px]">
+                      <td colSpan={4} className="py-4 px-4 text-center font-bold uppercase tracking-widest text-base">
                         <div className="flex items-center justify-center gap-2">
                           <Plus className="w-4 h-4" strokeWidth={2} />
-                          {subjects.length >= 3 ? "Max 3 Subjects Reached" : "Create New Subject"}
+                          {subjects.length >= 3 ? "MAX 3 SUBJECTS REACHED" : "INITIALIZE NEW RECORD"}
                         </div>
                       </td>
                     </tr>
@@ -207,17 +236,17 @@ export default function Dashboard() {
                             if (e.key === "Enter") handleCreate();
                             if (e.key === "Escape") { setShowCreate(false); setNewName(""); }
                           }}
-                          placeholder="Enter subject name..."
-                          className="w-full bg-transparent border-b border-border-strong py-1 text-sm focus:outline-none placeholder:text-text-tertiary"
+                          placeholder="ENTER SUBJECT NAME..."
+                          className="w-full bg-transparent border-b border-border-strong py-1 text-base font-bold uppercase tracking-widest focus:outline-none placeholder:text-text-tertiary"
                         />
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2 justify-center">
-                          <button onClick={handleCreate} disabled={creating || !newName.trim()} className="px-3 py-1.5 bg-text-primary text-bg-app text-xs font-semibold rounded disabled:opacity-50 cursor-pointer">
-                            {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
+                          <button onClick={handleCreate} disabled={creating || !newName.trim()} className="px-3 py-1.5 bg-text-primary text-bg-app text-base font-mono tracking-widest uppercase font-bold disabled:opacity-50 cursor-pointer">
+                            {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : "SAVE"}
                           </button>
-                          <button onClick={() => { setShowCreate(false); setNewName(""); }} className="px-3 py-1.5 border border-border-strong text-xs font-medium rounded cursor-pointer">
-                            Cancel
+                          <button onClick={() => { setShowCreate(false); setNewName(""); }} className="px-3 py-1.5 border border-border-strong text-base font-mono tracking-widest uppercase cursor-pointer">
+                            CANCEL
                           </button>
                         </div>
                       </td>
@@ -230,21 +259,21 @@ export default function Dashboard() {
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
               {subjects.map((subject) => (
-                <div key={subject.$id} className="border border-border-strong bg-bg-surface p-4">
+                <div key={subject.$id} className="gsap-hover border border-border-strong bg-bg-surface p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <Folder className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-                      <h3 className="font-medium text-sm">{subject.name}</h3>
+                      <h3 className="font-bold uppercase tracking-wider text-base">{subject.name}</h3>
                     </div>
-                    <span className="text-[10px] font-mono text-text-tertiary">
+                    <span className="text-base font-mono text-text-tertiary">
                       {fileCounts[subject.$id] ?? 0} files
                     </span>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Link href={`/chat?subject=${subject.$id}`} className="flex-1 py-2 border border-border-default text-center text-[10px] font-mono tracking-widest uppercase hover:bg-bg-subtle">CHAT</Link>
-                    <Link href={`/upload?subject=${subject.$id}`} className="flex-1 py-2 border border-border-default text-center text-[10px] font-mono tracking-widest uppercase hover:bg-bg-subtle">UPLOAD</Link>
-                    <Link href={`/study?subject=${subject.$id}`} className="flex-1 py-2 border border-border-default text-center text-[10px] font-mono tracking-widest uppercase hover:bg-bg-subtle">STUDY</Link>
-                    <button onClick={() => handleDelete(subject.$id)} className="py-2 px-3 border border-danger/30 text-danger text-[10px] font-mono tracking-widest uppercase hover:bg-danger/5 cursor-pointer">
+                    <Link href={`/chat?subject=${subject.$id}`} className="flex-1 py-2 border border-border-default text-center text-base font-mono tracking-widest uppercase hover:bg-bg-subtle">CHAT</Link>
+                    <Link href={`/upload?subject=${subject.$id}`} className="flex-1 py-2 border border-border-default text-center text-base font-mono tracking-widest uppercase hover:bg-bg-subtle">UPLOAD</Link>
+                    <Link href={`/study?subject=${subject.$id}`} className="flex-1 py-2 border border-border-default text-center text-base font-mono tracking-widest uppercase hover:bg-bg-subtle">STUDY</Link>
+                    <button onClick={() => handleDelete(subject.$id)} className="py-2 px-3 border border-danger/30 text-danger text-base font-mono tracking-widest uppercase hover:bg-danger/5 cursor-pointer">
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
@@ -252,10 +281,10 @@ export default function Dashboard() {
               ))}
 
               {subjects.length < 3 && (
-                <div className="border border-border-default border-dashed bg-bg-surface p-4">
+                <div className="gsap-hover border border-border-default border-dashed bg-bg-surface p-4">
                   {!showCreate ? (
-                    <button onClick={() => setShowCreate(true)} className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-text-secondary hover:text-text-primary cursor-pointer">
-                      <Plus className="w-4 h-4" /> Add Subject
+                    <button onClick={() => setShowCreate(true)} className="w-full flex items-center justify-center gap-2 py-3 text-base font-mono tracking-widest uppercase font-bold text-text-secondary hover:text-text-primary cursor-pointer">
+                      <Plus className="w-4 h-4" /> ADD SUBJECT
                     </button>
                   ) : (
                     <div className="space-y-3">
@@ -264,15 +293,15 @@ export default function Dashboard() {
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowCreate(false); setNewName(""); } }}
-                        placeholder="Enter subject name..."
-                        className="w-full bg-transparent border-b border-border-strong py-2 text-sm focus:outline-none"
+                        placeholder="Subject name..."
+                        className="w-full bg-transparent border-b border-border-strong py-2 text-base font-bold uppercase tracking-widest focus:outline-none"
                       />
                       <div className="flex gap-2">
-                        <button onClick={handleCreate} disabled={creating || !newName.trim()} className="flex-1 py-2 bg-text-primary text-bg-app text-xs font-semibold rounded disabled:opacity-50 cursor-pointer">
-                          {creating ? "..." : "Save"}
+                        <button onClick={handleCreate} disabled={creating || !newName.trim()} className="flex-1 py-2 bg-text-primary text-bg-app text-base font-mono tracking-widest uppercase font-bold disabled:opacity-50 cursor-pointer">
+                          {creating ? "..." : "SAVE"}
                         </button>
-                        <button onClick={() => { setShowCreate(false); setNewName(""); }} className="flex-1 py-2 border border-border-strong text-xs font-medium rounded cursor-pointer">
-                          Cancel
+                        <button onClick={() => { setShowCreate(false); setNewName(""); }} className="flex-1 py-2 border border-border-strong text-base font-mono tracking-widest uppercase cursor-pointer">
+                          CANCEL
                         </button>
                       </div>
                     </div>
@@ -283,8 +312,8 @@ export default function Dashboard() {
               {subjects.length === 0 && !showCreate && (
                 <div className="text-center py-12 text-text-tertiary">
                   <Folder className="w-8 h-8 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm font-semibold mb-1">No subjects found</p>
-                  <p className="text-xs text-text-tertiary">Create your first subject to begin</p>
+                  <p className="text-base font-mono tracking-widest uppercase">NO SUBJECTS FOUND</p>
+                  <p className="text-base font-mono text-text-tertiary mt-1">CREATE YOUR FIRST SUBJECT TO BEGIN</p>
                 </div>
               )}
             </div>
