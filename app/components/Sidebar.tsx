@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Folder, Upload, MessageSquare, BookOpen, Settings } from "lucide-react";
 
+import Image from "next/image";
+
 const navItems = [
      { name: "CATALOG", href: "/", icon: Folder },
      { name: "INGEST", href: "/upload", icon: Upload },
@@ -15,22 +17,17 @@ export default function Sidebar() {
      const pathname = usePathname();
 
      return (
-<<<<<<< HEAD
-          <aside className="w-64 border-r border-border-subtle bg-bg-surface shrink-0 flex-col hidden md:flex">
-               {/* Brand area */}
-               <div className="h-16 flex items-center px-6 border-b border-border-subtle">
-                    <Link href="/" className="font-semibold text-lg text-brand-700 tracking-tight flex items-center gap-2">
-                         <BookOpen className="w-5 h-5 text-brand-500" />
-                         AskMyNotes
-                    </Link>
-=======
           <aside className="w-56 border-r border-black bg-white flex flex-col shrink-0">
                {/* Brand Header */}
-               <div className="h-16 flex items-center px-4 border-b border-black shrink-0">
-                    <h1 className="font-mono text-xs tracking-widest uppercase font-bold text-black truncate">
-                         ARCHIVE // 001
-                    </h1>
->>>>>>> 065bb2dba4e726280e7710154014d2849637cf78
+               <div className="h-16 flex items-center justify-center border-b border-black shrink-0 relative px-4">
+                    <Image
+                         src="/image.png"
+                         alt="Archive Logo 001"
+                         className="object-contain"
+                         fill
+                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                         priority
+                    />
                </div>
 
                {/* Navigation */}
@@ -46,8 +43,8 @@ export default function Sidebar() {
                                         key={item.href}
                                         href={item.href}
                                         className={`flex items-center gap-3 px-4 py-3 text-xs tracking-widest font-mono uppercase transition-none border-b border-transparent ${isActive
-                                                  ? "text-black bg-black/5 border-l-2 border-l-black"
-                                                  : "text-black/60 hover:text-black hover:bg-black/5 border-l-2 border-l-transparent"
+                                             ? "text-black bg-black/5 border-l-2 border-l-black"
+                                             : "text-black/60 hover:text-black hover:bg-black/5 border-l-2 border-l-transparent"
                                              }`}
                                    >
                                         <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-black" : "text-black/50"}`} strokeWidth={1.5} />
