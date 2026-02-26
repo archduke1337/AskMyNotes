@@ -55,7 +55,7 @@ export default function LoginPage() {
      };
 
      return (
-          <div className="flex flex-col items-center justify-center h-full bg-bg-app relative font-sans p-4">
+          <div className="flex flex-col items-center justify-center min-h-screen w-full bg-bg-app relative font-sans p-4">
                <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
                     style={{ backgroundImage: "linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)", backgroundSize: "64px 64px" }}>
                </div>
