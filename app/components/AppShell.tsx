@@ -83,9 +83,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 flex flex-col min-w-0 h-full">
         <Header onMenuToggle={() => setSidebarOpen((v) => !v)} />
-        <ReactLenis className="flex-1 overflow-y-auto w-full" options={{ lerp: 0.1, duration: 1.5, smoothWheel: true }} root={false}>
-          <main className="min-h-full flex flex-col">{children}</main>
-        </ReactLenis>
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden w-full">{children}</main>
       </div>
     </>
   );
