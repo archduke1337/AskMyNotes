@@ -1,212 +1,317 @@
 "use client";
 
-import { useState } from "react";
-import { Send, Library, FileText, CheckCircle2, ChevronDown, Sparkles } from "lucide-react";
-
-type SubjectId = 1 | 2;
-
-const subjectsData = {
-     1: {
-          id: 1,
-          name: "ADVANCED CALCULUS",
-          notesCount: 24,
-          sources: [
-               { name: "CHAPTER_3_DERIVATIVES.PDF", date: "INDEXED TODAY", active: true },
-               { name: "LECTURE_01_LIMITS.PDF", date: "INDEXED 3 DAYS AGO", active: false }
-          ],
-          messages: [
-               { role: "user", text: "EXPLAIN THE CHAIN RULE IN SIMPLE TERMS AND PROVIDE AN EXAMPLE." },
-               {
-                    role: "assistant",
-                    text: "THE CHAIN RULE IS A FORMULA TO COMPUTE THE DERIVATIVE OF A COMPOSITE FUNCTION. IF YOU HAVE A FUNCTION NESTED INSIDE ANOTHER FUNCTION, LIKE F(G(X)), THE CHAIN RULE TELLS YOU TO TAKE THE DERIVATIVE OF THE OUTER FUNCTION F, LEAVING THE INNER FUNCTION G UNTOUCHED, AND MULTIPLY IT BY THE DERIVATIVE OF THE INNER FUNCTION.",
-                    formula: "FORMULA: d/dx [f(g(x))] = f'(g(x)) * g'(x)",
-                    snippet: "\"TO DIFFERENTIATE COMPOSED FUNCTIONS, WE APPLY THE CHAIN RULE: dy/dx = (dy/du) * (du/dx). FOR EXAMPLE, IF y = sin(x²), WE LET u = x².\"",
-                    citation: "CHAPTER_3_DERIVATIVES.PDF // PAGE 14.3.4",
-                    confidence: "CONFIDENCE: HIGH"
-               }
-          ]
-     },
-     2: {
-          id: 2,
-          name: "ORGANIC CHEMISTRY",
-          notesCount: 18,
-          sources: [
-               { name: "WEEK_4_REACTIONS.PDF", date: "INDEXED YESTERDAY", active: true },
-               { name: "LAB_MANUAL.TXT", date: "INDEXED 5 DAYS AGO", active: false }
-          ],
-          messages: [
-               { role: "user", text: "WHAT IS AN SN2 REACTION?" },
-               {
-                    role: "assistant",
-                    text: "AN SN2 REACTION IS A DIRECT DISPLACEMENT PROCESS. THE NUCLEOPHILE ATTACKS THE ELECTROPHILIC CARBON EXACTLY AS THE LEAVING GROUP DETACHES, ALL IN ONE CONCERTED STEP. THIS ALWAYS RESULTS IN THE INVERSION OF STEREOCHEMISTRY.",
-                    formula: "RATE = k[NUCLEOPHILE][SUBSTRATE]",
-                    snippet: "\"SN2 REACTIONS PROCEED WITH STEREOCHEMICAL INVERSION. THEY ARE FAVORED BY STRONG NUCLEOPHILES.\"",
-                    citation: "WEEK_4_REACTIONS.PDF // PAGE 22.4.1",
-                    confidence: "CONFIDENCE: HIGH"
-               }
-          ]
-     }
-};
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { Send, Library, FileText, CheckCircle2, ChevronDown, Sparkles, Loader2, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/context/AuthContext";
+import { fetchSubjects, fetchChatMessages, sendChatMessage, clearChatHistory, sendVoiceChatMessage, fetchNoteFiles } from "@/lib/api";
+import type { Subject, ChatMessage } from "@/lib/types";
+import type { VoiceChatResponse } from "@/lib/api";
 
 export default function ChatPage() {
-     const [activeSubjectId, setActiveSubjectId] = useState<SubjectId>(1);
-     const activeSubject = subjectsData[activeSubjectId];
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
 
-     return (
-          <div className="flex h-full bg-white font-sans text-black relative">
-               {/* Background Grid Pattern */}
-               <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
-                    style={{ backgroundImage: "linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)", backgroundSize: "32px 32px" }}>
-               </div>
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [activeSubjectId, setActiveSubjectId] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [noteFiles, setNoteFiles] = useState<{ name: string; date: string }[]>([]);
+  const [input, setInput] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [loadingSubjects, setLoadingSubjects] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-               {/* Left Column: Context Archive */}
-               <div className="w-80 border-r border-black bg-white flex flex-col shrink-0 relative z-10">
-                    <div className="border-b border-black">
-                         <div className="bg-black text-white px-4 py-2 flex items-center gap-2">
-                              <Library className="w-4 h-4" strokeWidth={1.5} />
-                              <span className="text-[10px] font-mono font-bold uppercase tracking-widest">CONTEXT REGISTRY</span>
-                         </div>
+  // Load subjects
+  const loadSubjects = useCallback(async () => {
+    if (!user) return;
+    try {
+      const data = await fetchSubjects(user.$id);
+      setSubjects(data);
+      const param = searchParams.get("subject");
+      if (param && data.find((s) => s.$id === param)) setActiveSubjectId(param);
+      else if (data.length > 0) setActiveSubjectId(data[0].$id);
+    } catch { /* handled */ }
+    finally { setLoadingSubjects(false); }
+  }, [user, searchParams]);
 
-                         <div className="p-4 border-b border-black">
-                              <div className="relative border border-black bg-white group hover:bg-black/5">
-                                   <select
-                                        className="w-full appearance-none bg-transparent pt-6 pb-2 px-4 text-xs font-bold uppercase tracking-widest focus:outline-none cursor-pointer text-black"
-                                        value={activeSubjectId}
-                                        onChange={(e) => setActiveSubjectId(Number(e.target.value) as SubjectId)}
-                                   >
-                                        <option value={1}>ADVANCED CALCULUS</option>
-                                        <option value={2}>ORGANIC CHEMISTRY</option>
-                                   </select>
-                                   <label className="absolute top-2 left-4 text-[8px] font-mono tracking-widest text-black/50 pointer-events-none">TARGET INDEX</label>
-                                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black pointer-events-none" />
-                              </div>
+  useEffect(() => { loadSubjects(); }, [loadSubjects]);
 
-                              <div className="flex justify-between items-center mt-4">
-                                   <span className="text-[10px] font-mono tracking-widest uppercase text-black/50">VOLUMES LOADED:</span>
-                                   <span className="text-xs font-mono font-bold tracking-widest text-black border border-black px-2">{activeSubject.notesCount}</span>
-                              </div>
-                         </div>
-                    </div>
+  // Load messages & files when subject changes
+  const loadData = useCallback(async () => {
+    if (!user || !activeSubjectId) { setMessages([]); setNoteFiles([]); return; }
+    setLoadingMessages(true);
+    try {
+      const [msgs, files] = await Promise.all([
+        fetchChatMessages(user.$id, activeSubjectId),
+        fetchNoteFiles(user.$id, activeSubjectId),
+      ]);
+      setMessages(msgs);
+      setNoteFiles(files.map((f) => ({ name: f.fileName, date: f.uploadedAt || f.$createdAt })));
+    } catch { /* handled */ }
+    finally { setLoadingMessages(false); }
+  }, [user, activeSubjectId]);
 
-                    <div className="flex-1 overflow-y-auto w-full p-4">
-                         <div className="text-[10px] font-mono tracking-widest text-black/50 uppercase mb-4 border-b border-black pb-2">
-                              ACTIVE SOURCES LISTING
-                         </div>
-                         <ul className="space-y-4">
-                              {activeSubject.sources.map((source, index) => (
-                                   <li key={index} className="flex items-start gap-4">
-                                        <div className={`w-8 h-8 flex items-center justify-center shrink-0 border ${source.active ? 'border-black bg-black text-white' : 'border-black/30 text-black/30'}`}>
-                                             <FileText className="w-4 h-4" strokeWidth={1.5} />
-                                        </div>
-                                        <div className="pt-0.5">
-                                             <p className={`text-[10px] font-mono font-bold tracking-widest uppercase leading-tight ${source.active ? 'text-black' : 'text-black/50'}`}>
-                                                  {source.name}
-                                             </p>
-                                             <p className="text-[9px] font-mono text-black/40 mt-1 uppercase tracking-widest">{source.date}</p>
-                                        </div>
-                                   </li>
-                              ))}
-                         </ul>
-                    </div>
-               </div>
+  useEffect(() => { loadData(); }, [loadData]);
 
-               {/* Right Column: Terminal Chat Interface */}
-               <div className="flex-1 flex flex-col h-full bg-white min-w-0 relative z-10 border-r border-black">
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-                    {/* Terminal Header */}
-                    <div className="h-12 border-b border-black flex items-center justify-between px-6 shrink-0 bg-white shadow-none">
-                         <div className="flex items-center gap-3">
-                              <div className="w-3 h-3 bg-black animate-pulse"></div>
-                              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-black">SYS.QUERY_PROCESS_TERMINAL</h3>
-                         </div>
-                         <div className="text-[10px] font-mono tracking-widest uppercase text-black/50">I/O MODE: ACTIVE</div>
-                    </div>
+  const activeSubject = subjects.find((s) => s.$id === activeSubjectId);
 
-                    {/* Message Log */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+  // Send message with RAG
+  const handleSend = async () => {
+    if (!user || !activeSubjectId || !input.trim() || isProcessing) return;
+    const question = input.trim();
+    setInput("");
+    setIsProcessing(true);
 
-                         {activeSubject.messages.map((msg, idx) => (
-                              msg.role === "user" ? (
-                                   <div key={idx} className="flex justify-start pl-12 relative group">
-                                        <div className="absolute left-0 top-0 text-[10px] font-mono text-black/30 tracking-widest w-12 text-center pt-1 border-r border-black mr-2">
-                                             USR
-                                        </div>
-                                        <div className="border border-black bg-black text-white p-4 max-w-2xl text-xs font-mono uppercase tracking-wider leading-relaxed">
-                                             <span className="text-white/50 mr-2">&gt;</span>{msg.text}
-                                        </div>
-                                   </div>
-                              ) : (
-                                   <div key={idx} className="flex justify-start pl-12 relative group">
-                                        <div className="absolute left-0 top-0 text-[10px] font-mono text-black tracking-widest w-12 text-center pt-1 border-r border-black mr-2 font-bold flex flex-col items-center">
-                                             <Sparkles className="w-3 h-3 mb-1" />
-                                             SYS
-                                        </div>
+    try {
+      // Get AI response via RAG
+      const response: VoiceChatResponse = await sendVoiceChatMessage({
+        userId: user.$id,
+        subjectId: activeSubjectId,
+        subjectName: activeSubject?.name || "",
+        question,
+        conversationHistory: messages.slice(-10).map((m) => ({
+          role: m.question ? ("user" as const) : ("assistant" as const),
+          content: m.question || m.answer || "",
+        })),
+      });
 
-                                        <div className="border border-black bg-white p-6 max-w-4xl text-xs font-mono uppercase tracking-wider leading-relaxed">
+      // Save to chat history
+      await sendChatMessage({
+        userId: user.$id,
+        subjectId: activeSubjectId,
+        question,
+        answer: response.answer,
+        confidence: response.confidence as "High" | "Medium" | "Low",
+        citations: response.citations.map((c) => ({
+          fileId: "",
+          fileName: c.fileName,
+          reference: c.reference,
+          snippet: c.snippet,
+        })),
+      });
 
-                                             <div className="flex items-center justify-between border-b border-black pb-4 mb-4">
-                                                  <span className="bg-black text-white px-2 py-1 text-[9px] tracking-widest font-bold">QUERY_RESOLVED</span>
-                                                  <div className="flex items-center gap-2 border border-black px-2 py-1 bg-black/5">
-                                                       <CheckCircle2 className="w-3 h-3 text-black" strokeWidth={2} />
-                                                       <span className="text-[9px] font-bold tracking-widest font-mono shrink-0">{msg.confidence}</span>
-                                                  </div>
-                                             </div>
+      await loadData();
+    } catch {
+      // Save error as message
+      await sendChatMessage({
+        userId: user.$id,
+        subjectId: activeSubjectId,
+        question,
+        answer: "Error: Failed to generate response. Please try again.",
+        confidence: "Low",
+      });
+      await loadData();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-                                             <div className="space-y-4 text-black">
-                                                  <p>{msg.text}</p>
+  const handleClear = async () => {
+    if (!user || !activeSubjectId || !confirm("Clear all chat history for this subject?")) return;
+    try {
+      await clearChatHistory(user.$id, activeSubjectId);
+      setMessages([]);
+    } catch { /* handled */ }
+  };
 
-                                                  {msg.formula && (
-                                                       <div className="border border-black p-3 bg-[#f0f0f0] flex gap-3 items-center text-black">
-                                                            <div className="w-4 h-4 bg-black shrink-0 flex items-center justify-center font-bold text-white leading-none">∑</div>
-                                                            <span>{msg.formula}</span>
-                                                       </div>
-                                                  )}
+  const handleSubjectChange = (id: string) => {
+    setActiveSubjectId(id);
+    setMessages([]);
+    setInput("");
+  };
 
-                                                  <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-black border-dashed">
-                                                       {msg.snippet && (
-                                                            <div className="border border-black p-3">
-                                                                 <p className="text-[9px] font-bold text-black/50 uppercase tracking-widest mb-2 border-b border-black pb-1">EXTRACTED EVIDENCE NO.1</p>
-                                                                 <p className="text-[10px] text-black italic leading-normal">{msg.snippet}</p>
-                                                            </div>
-                                                       )}
+  const parseCitations = (msg: ChatMessage) => {
+    if (!msg.citations) return [];
+    if (Array.isArray(msg.citations)) return msg.citations;
+    try { return JSON.parse(msg.citations as unknown as string); } catch { return []; }
+  };
 
-                                                       {msg.citation && (
-                                                            <div className="border border-black p-3 bg-black flex flex-col justify-between">
-                                                                 <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mb-2 border-b border-white/30 pb-1">CITATION REF FILE</p>
-                                                                 <div className="flex items-center gap-2 text-white mt-auto">
-                                                                      <FileText className="w-4 h-4 shrink-0" />
-                                                                      <span className="text-[9px] break-all">{msg.citation}</span>
-                                                                 </div>
-                                                            </div>
-                                                       )}
-                                                  </div>
-                                             </div>
+  if (loadingSubjects) {
+    return <div className="flex items-center justify-center h-full"><Loader2 className="w-5 h-5 animate-spin text-text-tertiary" /></div>;
+  }
 
-                                        </div>
-                                   </div>
-                              )
-                         ))}
+  return (
+    <div className="flex flex-col md:flex-row h-full bg-bg-app font-sans relative">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
+        style={{ backgroundImage: "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }}
+      />
 
-                    </div>
-
-                    {/* Input Terminal */}
-                    <div className="p-4 bg-white border-t border-black shrink-0 relative">
-                         <div className="flex items-center border border-black relative group focus-within:ring-1 focus-within:ring-black focus-within:bg-black/5 bg-white transition-none h-14">
-                              <div className="h-full border-r border-black flex items-center px-4 font-mono font-bold text-[10px] tracking-widest text-black uppercase w-24">
-                                   INPUT<span className="animate-ping ml-2 inline-flex h-1.5 w-1.5 bg-black"></span>
-                              </div>
-                              <input
-                                   type="text"
-                                   placeholder={`QUERY INDEX: ${activeSubject.name}...`}
-                                   className="flex-1 h-full bg-transparent px-4 text-xs font-mono uppercase text-black focus:outline-none placeholder:text-black/30"
-                              />
-                              <button className="h-full border-l border-black w-14 flex items-center justify-center hover:bg-black hover:text-white transition-none text-black group-focus-within:bg-black group-focus-within:text-white cursor-pointer group-hover:bg-black/5">
-                                   <span className="sr-only">Transmit</span>
-                                   <Send className="w-4 h-4" strokeWidth={1.5} />
-                              </button>
-                         </div>
-                    </div>
-               </div>
+      {/* Left Column: Context */}
+      <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-border-strong bg-bg-surface flex flex-col shrink-0 relative z-10 max-h-48 md:max-h-none">
+        <div className="border-b border-border-strong">
+          <div className="bg-text-primary text-bg-app px-4 py-2 flex items-center gap-2">
+            <Library className="w-4 h-4" strokeWidth={1.5} />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest">CONTEXT REGISTRY</span>
           </div>
-     );
+          <div className="p-4 border-b border-border-strong">
+            <div className="relative border border-border-strong bg-bg-surface hover:bg-bg-subtle">
+              <select
+                className="w-full appearance-none bg-transparent pt-6 pb-2 px-4 text-xs font-bold uppercase tracking-widest focus:outline-none cursor-pointer"
+                value={activeSubjectId}
+                onChange={(e) => handleSubjectChange(e.target.value)}
+              >
+                {subjects.length === 0 && <option value="">NO SUBJECTS</option>}
+                {subjects.map((s) => <option key={s.$id} value={s.$id}>{s.name.toUpperCase()}</option>)}
+              </select>
+              <label className="absolute top-2 left-4 text-[8px] font-mono tracking-widest text-text-tertiary pointer-events-none">TARGET INDEX</label>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <span className="text-[10px] font-mono tracking-widest uppercase text-text-tertiary">SOURCES:</span>
+              <span className="text-xs font-mono font-bold tracking-widest border border-border-strong px-2">{noteFiles.length}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 hidden md:block">
+          <div className="text-[10px] font-mono tracking-widest text-text-tertiary uppercase mb-4 border-b border-border-strong pb-2">SOURCES</div>
+          {noteFiles.length === 0 ? (
+            <p className="text-[10px] font-mono text-text-tertiary">No files uploaded yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {noteFiles.map((f, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <div className="w-7 h-7 flex items-center justify-center shrink-0 border border-border-strong">
+                    <FileText className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </div>
+                  <p className="text-[10px] font-mono font-bold tracking-widest uppercase leading-tight">{f.name}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {messages.length > 0 && (
+          <div className="border-t border-border-strong p-3 hidden md:block">
+            <button onClick={handleClear} className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-secondary text-[10px] font-mono tracking-widest uppercase hover:bg-bg-subtle cursor-pointer">
+              <Trash2 className="w-3 h-3" /> CLEAR HISTORY
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Right Column: Chat */}
+      <div className="flex-1 flex flex-col h-full bg-bg-app min-w-0 relative z-10">
+        <div className="h-12 border-b border-border-strong flex items-center justify-between px-4 md:px-6 shrink-0 bg-bg-surface">
+          <div className="flex items-center gap-3">
+            <div className={`w-3 h-3 ${isProcessing ? "bg-text-primary animate-pulse" : "bg-text-tertiary"}`} />
+            <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase">SYS.QUERY_TERMINAL</h3>
+          </div>
+          <div className="text-[10px] font-mono tracking-widest uppercase text-text-tertiary">
+            {messages.length} MSG(S)
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+          {loadingMessages ? (
+            <div className="flex items-center justify-center py-12"><Loader2 className="w-4 h-4 animate-spin text-text-tertiary" /></div>
+          ) : messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Sparkles className="w-8 h-8 text-text-tertiary/30 mb-4" />
+              <p className="text-[10px] font-mono tracking-widest uppercase text-text-tertiary">ASK A QUESTION ABOUT YOUR NOTES</p>
+            </div>
+          ) : (
+            messages.map((msg) => (
+              <div key={msg.$id}>
+                {/* User question */}
+                <div className="flex justify-start pl-10 md:pl-12 relative mb-4">
+                  <div className="absolute left-0 top-0 text-[10px] font-mono text-text-tertiary tracking-widest w-10 md:w-12 text-center pt-1 border-r border-border-strong mr-2">USR</div>
+                  <div className="border border-border-strong bg-text-primary text-bg-app p-3 md:p-4 max-w-2xl text-xs font-mono uppercase tracking-wider leading-relaxed">
+                    <span className="opacity-50 mr-2">&gt;</span>{msg.question}
+                  </div>
+                </div>
+                {/* AI answer */}
+                {msg.answer && (
+                  <div className="flex justify-start pl-10 md:pl-12 relative">
+                    <div className="absolute left-0 top-0 text-[10px] font-mono tracking-widest w-10 md:w-12 text-center pt-1 border-r border-border-strong mr-2 font-bold flex flex-col items-center">
+                      <Sparkles className="w-3 h-3 mb-1" />SYS
+                    </div>
+                    <div className="border border-border-strong bg-bg-surface p-4 md:p-6 max-w-4xl text-xs font-mono tracking-wider leading-relaxed">
+                      <div className="flex items-center justify-between border-b border-border-strong pb-3 mb-3">
+                        <span className="bg-text-primary text-bg-app px-2 py-1 text-[9px] tracking-widest font-bold">QUERY_RESOLVED</span>
+                        {msg.confidence && (
+                          <div className="flex items-center gap-2 border border-border-strong px-2 py-1 bg-bg-subtle">
+                            <CheckCircle2 className="w-3 h-3" strokeWidth={2} />
+                            <span className="text-[9px] font-bold tracking-widest shrink-0">CONFIDENCE: {msg.confidence}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="uppercase">{msg.answer}</p>
+                      {(() => {
+                        const cits = parseCitations(msg);
+                        if (!cits.length) return null;
+                        return (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-border-strong border-dashed">
+                            {cits.map((cit: { snippet?: string; fileName?: string; reference?: string }, i: number) => (
+                              <div key={i} className="border border-border-strong p-3">
+                                <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-widest mb-2 border-b border-border-strong pb-1">EVIDENCE NO.{i+1}</p>
+                                {cit.snippet && <p className="text-[10px] italic leading-normal mb-2">&quot;{cit.snippet}&quot;</p>}
+                                <div className="flex items-center gap-2 text-text-tertiary">
+                                  <FileText className="w-3 h-3 shrink-0" />
+                                  <span className="text-[9px] break-all uppercase">{cit.fileName} // {cit.reference}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+
+          {isProcessing && (
+            <div className="flex justify-start pl-10 md:pl-12 relative">
+              <div className="absolute left-0 top-0 text-[10px] font-mono tracking-widest w-10 md:w-12 text-center pt-1 border-r border-border-strong mr-2 font-bold flex flex-col items-center">
+                <Sparkles className="w-3 h-3 mb-1 animate-spin" />SYS
+              </div>
+              <div className="border border-border-strong bg-bg-surface p-6">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-text-tertiary">ANALYZING NOTES...</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="p-3 md:p-4 bg-bg-surface border-t border-border-strong shrink-0">
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+            className="flex items-center border border-border-strong relative focus-within:ring-1 focus-within:ring-text-primary bg-bg-surface h-12 md:h-14"
+          >
+            <div className="h-full border-r border-border-strong flex items-center px-3 md:px-4 font-mono font-bold text-[10px] tracking-widest uppercase w-20 md:w-24 shrink-0">
+              INPUT<span className="animate-ping ml-2 inline-flex h-1.5 w-1.5 bg-text-primary" />
+            </div>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isProcessing || !activeSubjectId}
+              placeholder={activeSubject ? `QUERY: ${activeSubject.name.toUpperCase()}...` : "SELECT A SUBJECT..."}
+              className="flex-1 h-full bg-transparent px-3 md:px-4 text-xs font-mono uppercase focus:outline-none placeholder:text-text-tertiary disabled:opacity-30"
+            />
+            <button
+              type="submit"
+              disabled={isProcessing || !activeSubjectId || !input.trim()}
+              className="h-full border-l border-border-strong w-12 md:w-14 flex items-center justify-center hover:bg-text-primary hover:text-bg-app cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Send className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 }

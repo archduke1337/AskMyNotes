@@ -34,7 +34,7 @@ export interface NoteChunk extends AppwriteDocument {
   userId: string;
   chunkText: string;
   reference: string; // e.g. "Page 14, Section 3.4"
-  embedding: number[]; // vector embedding
+  embedding: string; // JSON-stringified float array (stored as string in Appwrite)
   createdAt: string;
 }
 
