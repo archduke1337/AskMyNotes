@@ -116,7 +116,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-bg-app relative">
+    <div className="flex flex-col flex-1 bg-bg-app relative">
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{

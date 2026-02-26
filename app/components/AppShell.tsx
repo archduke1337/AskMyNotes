@@ -83,7 +83,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 flex flex-col min-w-0 h-full">
         <Header onMenuToggle={() => setSidebarOpen((v) => !v)} />
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden w-full">{children}</main>
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden w-full h-full relative">
+          <div className="flex-1 w-full h-full flex flex-col">
+            {children}
+          </div>
+        </main>
       </div>
     </>
   );

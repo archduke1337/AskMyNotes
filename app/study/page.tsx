@@ -135,7 +135,7 @@ export default function StudyPage() {
   const shortItems = items.filter((i) => i.type === "short");
 
   return (
-    <div className="flex flex-col h-full bg-bg-app font-sans relative">
+    <div className="flex flex-col flex-1 bg-bg-app font-sans relative">
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
         style={{ backgroundImage: "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)", backgroundSize: "64px 64px" }}
       />

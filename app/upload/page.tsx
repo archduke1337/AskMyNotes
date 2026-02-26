@@ -150,7 +150,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-bg-app relative font-sans">
+    <div className="flex flex-col flex-1 bg-bg-app relative font-sans">
       <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{ backgroundImage: "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)", backgroundSize: "32px 32px" }}
       />

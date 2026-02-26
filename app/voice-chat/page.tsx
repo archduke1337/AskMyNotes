@@ -227,7 +227,7 @@ export default function VoiceChatPage() {
      }
 
      return (
-          <div className="flex h-full bg-white font-sans text-black relative">
+          <div className="flex flex-1 bg-white font-sans text-black relative">
                {/* Background Grid */}
                <div
                     className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
