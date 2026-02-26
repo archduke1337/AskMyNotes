@@ -1,15 +1,17 @@
 // ─── POST /api/study/generate ───────────────────────────────────
 // AI-powered study question generator.
-// Fetches note chunks for a subject, calls OpenAI to generate
+// Fetches note chunks for a subject, calls Gemini to generate
 // MCQ and short-answer questions, saves them to study_mode.
 
 import { NextRequest, NextResponse } from "next/server";
 import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS } from "@/lib/appwrite/config";
 import { Query, ID } from "node-appwrite";
-import OpenAI from "openai";
+import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 interface ChunkDoc {
   $id: string;
@@ -25,11 +27,17 @@ interface FileDoc {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, subjectId, count = 3 } = await req.json();
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
 
-    if (!userId || !subjectId) {
+    const rl = checkRateLimit(`study-gen:${session.userId}`, RATE_LIMITS.ai);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
+    const { subjectId, count = 3 } = await req.json();
+
+    if (!subjectId) {
       return NextResponse.json(
-        { error: "userId and subjectId are required" },
+        { error: "subjectId is required" },
         { status: 400 }
       );
     }
@@ -39,7 +47,7 @@ export async function POST(req: NextRequest) {
       DATABASE_ID,
       COLLECTION_IDS.noteChunks,
       [
-        Query.equal("userId", userId),
+        Query.equal("userId", session.userId),
         Query.equal("subjectId", subjectId),
         Query.limit(50),
       ]
@@ -59,7 +67,7 @@ export async function POST(req: NextRequest) {
       DATABASE_ID,
       COLLECTION_IDS.noteFiles,
       [
-        Query.equal("userId", userId),
+        Query.equal("userId", session.userId),
         Query.equal("subjectId", subjectId),
         Query.limit(50),
       ]
@@ -83,49 +91,55 @@ export async function POST(req: NextRequest) {
     const shortCount = count - mcqCount;
 
     const prompt = `Based on the following study notes, generate exactly ${mcqCount} multiple-choice questions and ${shortCount} short-answer questions.
+    
+    NOTES:
+    ${context}`;
 
-NOTES:
-${context}
+    const responseSchema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        items: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              type: {
+                type: Type.STRING,
+                description: "'mcq' or 'short'"
+              },
+              content: {
+                type: Type.OBJECT,
+                description: "Contains 'question', 'options', 'correctAnswer', 'explanation' for MCQ OR 'question', 'answer', 'explanation' for Short Answer.",
+              },
+              citations: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    fileName: { type: Type.STRING },
+                    reference: { type: Type.STRING },
+                    snippet: { type: Type.STRING },
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
 
-RESPONSE FORMAT (JSON array):
-[
-  {
-    "type": "mcq",
-    "content": {
-      "question": "The question text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": "The correct option text (must match one of the options exactly)",
-      "explanation": "Why this is the correct answer"
-    },
-    "citations": [{ "fileName": "source.pdf", "reference": "Page X", "snippet": "relevant quote" }]
-  },
-  {
-    "type": "short",
-    "content": {
-      "question": "The question text",
-      "answer": "The model answer",
-      "explanation": "Additional explanation"
-    },
-    "citations": [{ "fileName": "source.pdf", "reference": "Page X", "snippet": "relevant quote" }]
-  }
-]
-
-Rules:
-- Questions must be based ONLY on the provided notes
-- Each question should test understanding, not just recall
-- Provide clear, educational explanations
-- Include at least one citation per question
-- Return valid JSON only, no markdown fences`;
-
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
-      max_tokens: 3000,
-      response_format: { type: "json_object" },
+    const response = await ai.models.generateContent({
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.5,
+        maxOutputTokens: 3000,
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+      }
     });
 
-    const raw = completion.choices[0]?.message?.content || "{}";
+    const raw = response.text || "{}";
     let parsed: { items?: unknown[]; questions?: unknown[] };
 
     try {
@@ -146,7 +160,7 @@ Rules:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items.map((item: any) =>
         databases.createDocument(DATABASE_ID, COLLECTION_IDS.studyMode, ID.unique(), {
-          userId,
+          userId: session.userId,
           subjectId,
           type: item.type || "mcq",
           content: JSON.stringify(item.content || {}),

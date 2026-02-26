@@ -1,7 +1,7 @@
 // ─── POST /api/voice-chat ───────────────────────────────────────────
 // AI‑powered teacher conversation with multi‑turn context.
 // Performs RAG: fetches note chunks for the subject, builds context,
-// calls OpenAI, returns structured answer with citations + confidence.
+// calls Gemini, returns structured answer with citations + confidence.
 // Enforces subject scoping & refusal when content not found.
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +9,8 @@ import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS } from "@/lib/appwrite/config";
 import { Query } from "node-appwrite";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
@@ -33,24 +35,28 @@ interface FileDoc {
 // ── POST — answer a voice question within subject scope ───────────────
 export async function POST(req: NextRequest) {
   try {
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`voice:${session.userId}`, RATE_LIMITS.ai);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const body = await req.json();
     const {
-      userId,
       subjectId,
       subjectName,
       question,
       conversationHistory = [],
     } = body as {
-      userId: string;
       subjectId: string;
       subjectName: string;
       question: string;
       conversationHistory: ConversationTurn[];
     };
 
-    if (!userId || !subjectId || !question) {
+    if (!subjectId || !question) {
       return NextResponse.json(
-        { error: "userId, subjectId, and question are required" },
+        { error: "subjectId and question are required" },
         { status: 400 }
       );
     }
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
       DATABASE_ID,
       COLLECTION_IDS.noteChunks,
       [
-        Query.equal("userId", userId),
+        Query.equal("userId", session.userId),
         Query.equal("subjectId", subjectId),
         Query.limit(100),
       ]
@@ -73,7 +79,7 @@ export async function POST(req: NextRequest) {
       DATABASE_ID,
       COLLECTION_IDS.noteFiles,
       [
-        Query.equal("userId", userId),
+        Query.equal("userId", session.userId),
         Query.equal("subjectId", subjectId),
         Query.limit(50),
       ]

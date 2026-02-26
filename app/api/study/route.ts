@@ -4,25 +4,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const col = COLLECTION_IDS.studyMode;
 
 // ── GET — list study items for a subject ──────────────────────────────
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`study:get:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const subjectId = req.nextUrl.searchParams.get("subjectId");
     const type = req.nextUrl.searchParams.get("type"); // "mcq" | "short"
 
-    if (!userId || !subjectId) {
+    if (!subjectId) {
       return NextResponse.json(
-        { error: "userId and subjectId are required" },
+        { error: "subjectId is required" },
         { status: 400 }
       );
     }
 
     const queries = [
-      Query.equal("userId", userId),
+      Query.equal("userId", session.userId),
       Query.equal("subjectId", subjectId),
       Query.orderDesc("$createdAt"),
     ];
@@ -39,17 +46,23 @@ export async function GET(req: NextRequest) {
 // ── POST — create a study item ────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const { userId, subjectId, type, content, citations } = await req.json();
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
 
-    if (!userId || !subjectId || !type || !content) {
+    const rl = checkRateLimit(`study:post:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
+    const { subjectId, type, content, citations } = await req.json();
+
+    if (!subjectId || !type || !content) {
       return NextResponse.json(
-        { error: "userId, subjectId, type, and content are required" },
+        { error: "subjectId, type, and content are required" },
         { status: 400 }
       );
     }
 
     const doc = await databases.createDocument(DATABASE_ID, col, ID.unique(), {
-      userId,
+      userId: session.userId,
       subjectId,
       type,
       content: JSON.stringify(content),

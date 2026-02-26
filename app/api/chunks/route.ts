@@ -4,21 +4,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const col = COLLECTION_IDS.noteChunks;
 
 // ── GET — list chunks for a subject (or a specific file) ──────────────
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`chunks:get:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const subjectId = req.nextUrl.searchParams.get("subjectId");
     const fileId = req.nextUrl.searchParams.get("fileId");
 
-    if (!userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
-    }
-
-    const queries = [Query.equal("userId", userId)];
+    const queries = [Query.equal("userId", session.userId)];
     if (subjectId) queries.push(Query.equal("subjectId", subjectId));
     if (fileId) queries.push(Query.equal("fileId", fileId));
     queries.push(Query.limit(250));
@@ -34,20 +37,25 @@ export async function GET(req: NextRequest) {
 // ── POST — create one or many chunks (batch) ─────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const { userId, chunks } = (await req.json()) as {
-      userId: string;
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`chunks:post:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
+    const { chunks } = (await req.json()) as {
       chunks: {
         subjectId: string;
         fileId: string;
         chunkText: string;
         reference: string;
-        embedding: string; // JSON‑stringified float array
+        embedding: string;
       }[];
     };
 
-    if (!userId || !chunks?.length) {
+    if (!chunks?.length) {
       return NextResponse.json(
-        { error: "userId and chunks[] are required" },
+        { error: "chunks[] are required" },
         { status: 400 }
       );
     }
@@ -56,7 +64,7 @@ export async function POST(req: NextRequest) {
       chunks.map((c) =>
         databases.createDocument(DATABASE_ID, col, ID.unique(), {
           ...c,
-          userId,
+          userId: session.userId,
         })
       )
     );

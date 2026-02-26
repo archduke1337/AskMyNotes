@@ -3,19 +3,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS, MAX_SUBJECTS } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const col = COLLECTION_IDS.subjects;
 
 // ── GET  — list subjects for a user ───────────────────────────────────
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
-    if (!userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
-    }
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`subjects:get:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
 
     const res = await databases.listDocuments(DATABASE_ID, col, [
-      Query.equal("userId", userId),
+      Query.equal("userId", session.userId),
       Query.orderDesc("$createdAt"),
       Query.limit(MAX_SUBJECTS),
     ]);
@@ -30,18 +33,24 @@ export async function GET(req: NextRequest) {
 // ── POST — create a new subject (max 3 enforced) ─────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const { userId, name } = await req.json();
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
 
-    if (!userId || !name) {
+    const rl = checkRateLimit(`subjects:post:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
+    const { name } = await req.json();
+
+    if (!name) {
       return NextResponse.json(
-        { error: "userId and name are required" },
+        { error: "name is required" },
         { status: 400 }
       );
     }
 
     // Enforce max 3 subjects
     const existing = await databases.listDocuments(DATABASE_ID, col, [
-      Query.equal("userId", userId),
+      Query.equal("userId", session.userId),
     ]);
 
     if (existing.total >= MAX_SUBJECTS) {
@@ -56,7 +65,7 @@ export async function POST(req: NextRequest) {
       col,
       ID.unique(),
       {
-        userId,
+        userId: session.userId,
         name,
       }
     );

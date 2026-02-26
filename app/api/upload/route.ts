@@ -1,28 +1,35 @@
-// ─── POST /api/upload  &  GET /api/upload?userId=&subjectId= ───────────
+// ─── POST /api/upload  &  GET /api/upload?subjectId= ───────────────
 // Handles file upload to Appwrite Storage + saving metadata in note_files.
 import { NextRequest, NextResponse } from "next/server";
 import { databases, storage } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS, BUCKET_ID } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const col = COLLECTION_IDS.noteFiles;
 
 // ── GET — list uploaded files for a subject ───────────────────────────
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`upload:get:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const subjectId = req.nextUrl.searchParams.get("subjectId");
 
-    if (!userId || !subjectId) {
+    if (!subjectId) {
       return NextResponse.json(
-        { error: "userId and subjectId are required" },
+        { error: "subjectId is required" },
         { status: 400 }
       );
     }
 
     const res = await databases.listDocuments(DATABASE_ID, col, [
-      Query.equal("userId", userId),
+      Query.equal("userId", session.userId),
       Query.equal("subjectId", subjectId),
       Query.orderDesc("$createdAt"),
     ]);
@@ -37,14 +44,19 @@ export async function GET(req: NextRequest) {
 // ── POST — upload a file + save metadata ──────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`upload:post:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const subjectId = formData.get("subjectId") as string | null;
-    const userId = formData.get("userId") as string | null;
 
-    if (!file || !subjectId || !userId) {
+    if (!file || !subjectId) {
       return NextResponse.json(
-        { error: "file, subjectId, and userId are required" },
+        { error: "file and subjectId are required" },
         { status: 400 }
       );
     }
@@ -65,7 +77,7 @@ export async function POST(req: NextRequest) {
       ID.unique(),
       {
         subjectId,
-        userId,
+        userId: session.userId,
         fileName: file.name,
         fileType,
         storageFileId: uploaded.$id,

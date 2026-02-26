@@ -4,10 +4,17 @@
 // No Appwrite SDK calls happen directly from the browser (except Auth).
 
 import type { Subject, NoteFile, NoteChunk, ChatMessage, StudyModeItem, Citation } from "@/lib/types";
+import { getAuthToken } from "@/lib/auth/tokenStore";
 
-// ─── Generic fetch wrapper ────────────────────────────────────────────
+// ─── Generic fetch wrapper (auto‑attaches JWT) ────────────────────────
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+  const token = getAuthToken();
+  const headers = new Headers(init?.headers);
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const res = await fetch(url, { ...init, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `API error ${res.status}`);
@@ -195,6 +202,22 @@ export async function sendVoiceChatMessage(data: {
   conversationHistory: ConversationTurn[];
 }): Promise<VoiceChatResponse> {
   return api("/api/voice-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STUDY — AI Generation
+// ═══════════════════════════════════════════════════════════════════════
+
+export async function generateStudyQuestions(data: {
+  userId: string;
+  subjectId: string;
+  count?: number;
+}): Promise<{ success: boolean; count: number }> {
+  return api("/api/study/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

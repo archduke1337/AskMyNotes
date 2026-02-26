@@ -6,10 +6,12 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { Models, ID } from "appwrite";
 import { account } from "@/lib/appwrite/client";
+import { setAuthToken } from "@/lib/auth/tokenStore";
 
 // ─── Types ────────────────────────────────────────────────────────────
 type AuthUser = Models.User<Models.Preferences>;
@@ -29,27 +31,58 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+// JWT auto-refresh interval (14 min — JWT expires at 15 min)
+const JWT_REFRESH_MS = 14 * 60 * 1000;
+
 // ─── Provider ─────────────────────────────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const jwtTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Check for an existing session on mount
+  // ── JWT helpers ─────────────────────────────────────────────────────
+  const obtainJWT = useCallback(async () => {
+    try {
+      const { jwt } = await account.createJWT();
+      setAuthToken(jwt);
+    } catch {
+      setAuthToken(null);
+    }
+  }, []);
+
+  const startJwtRefresh = useCallback(() => {
+    if (jwtTimer.current) clearInterval(jwtTimer.current);
+    jwtTimer.current = setInterval(obtainJWT, JWT_REFRESH_MS);
+  }, [obtainJWT]);
+
+  const stopJwtRefresh = useCallback(() => {
+    if (jwtTimer.current) {
+      clearInterval(jwtTimer.current);
+      jwtTimer.current = null;
+    }
+  }, []);
+
+  // ── Check for an existing session on mount ──────────────────────────
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
       const session = await account.get();
       setUser(session);
+      await obtainJWT();
+      startJwtRefresh();
     } catch {
       setUser(null);
+      setAuthToken(null);
+      stopJwtRefresh();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [obtainJWT, startJwtRefresh, stopJwtRefresh]);
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    return () => stopJwtRefresh();
+  }, [refresh, stopJwtRefresh]);
 
   // ── Auth actions ────────────────────────────────────────────────────
   const register = async (email: string, password: string, name: string) => {
@@ -64,11 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    stopJwtRefresh();
     try {
       await account.deleteSession("current");
     } catch {
       // Session may already be expired — that's fine
     }
+    setAuthToken(null);
     setUser(null);
   };
 

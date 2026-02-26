@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases, storage } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS, BUCKET_ID } from "@/lib/appwrite/config";
 import { Query } from "node-appwrite";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const col = COLLECTION_IDS.subjects;
 
@@ -12,12 +14,22 @@ type Params = { params: Promise<{ id: string }> };
 // ── PATCH — rename a subject ──────────────────────────────────────────
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`subjects:patch:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const { id } = await params;
     const { name } = await req.json();
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
+
+    // Verify ownership
+    const doc = await databases.getDocument(DATABASE_ID, col, id);
+    if (doc.userId !== session.userId) return unauthorized("Forbidden");
 
     const updated = await databases.updateDocument(DATABASE_ID, col, id, { name });
     return NextResponse.json(updated);
@@ -28,9 +40,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // ── DELETE — remove a subject + cascading cleanup ─────────────────────
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   try {
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`subjects:del:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const { id } = await params;
+
+    // Verify ownership
+    const doc = await databases.getDocument(DATABASE_ID, col, id);
+    if (doc.userId !== session.userId) return unauthorized("Forbidden");
 
     // 1. Delete all note_files + their storage blobs
     const files = await databases.listDocuments(DATABASE_ID, COLLECTION_IDS.noteFiles, [

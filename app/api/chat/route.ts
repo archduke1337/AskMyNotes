@@ -4,24 +4,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases } from "@/lib/appwrite/server";
 import { DATABASE_ID, COLLECTION_IDS } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
+import { validateSession, unauthorized } from "@/lib/auth/validateSession";
+import { checkRateLimit, rateLimited, RATE_LIMITS } from "@/lib/rateLimit";
 
 const col = COLLECTION_IDS.chatHistory;
 
 // ── GET — list chat messages for a subject ────────────────────────────
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`chat:get:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const subjectId = req.nextUrl.searchParams.get("subjectId");
 
-    if (!userId || !subjectId) {
+    if (!subjectId) {
       return NextResponse.json(
-        { error: "userId and subjectId are required" },
+        { error: "subjectId is required" },
         { status: 400 }
       );
     }
 
     const res = await databases.listDocuments(DATABASE_ID, col, [
-      Query.equal("userId", userId),
+      Query.equal("userId", session.userId),
       Query.equal("subjectId", subjectId),
       Query.orderAsc("$createdAt"),
       Query.limit(100),
@@ -37,18 +44,24 @@ export async function GET(req: NextRequest) {
 // ── POST — save a Q&A message ─────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const { userId, subjectId, question, answer, confidence, citations } =
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`chat:post:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
+    const { subjectId, question, answer, confidence, citations } =
       await req.json();
 
-    if (!userId || !subjectId || !question) {
+    if (!subjectId || !question) {
       return NextResponse.json(
-        { error: "userId, subjectId, and question are required" },
+        { error: "subjectId and question are required" },
         { status: 400 }
       );
     }
 
     const doc = await databases.createDocument(DATABASE_ID, col, ID.unique(), {
-      userId,
+      userId: session.userId,
       subjectId,
       question,
       answer: answer ?? null,
@@ -66,18 +79,23 @@ export async function POST(req: NextRequest) {
 // ── DELETE — clear all chat for a subject ─────────────────────────────
 export async function DELETE(req: NextRequest) {
   try {
-    const userId = req.nextUrl.searchParams.get("userId");
+    const session = await validateSession(req);
+    if (!session) return unauthorized();
+
+    const rl = checkRateLimit(`chat:del:${session.userId}`, RATE_LIMITS.general);
+    if (!rl.allowed) return rateLimited(rl.resetMs);
+
     const subjectId = req.nextUrl.searchParams.get("subjectId");
 
-    if (!userId || !subjectId) {
+    if (!subjectId) {
       return NextResponse.json(
-        { error: "userId and subjectId are required" },
+        { error: "subjectId is required" },
         { status: 400 }
       );
     }
 
     const res = await databases.listDocuments(DATABASE_ID, col, [
-      Query.equal("userId", userId),
+      Query.equal("userId", session.userId),
       Query.equal("subjectId", subjectId),
       Query.limit(500),
     ]);

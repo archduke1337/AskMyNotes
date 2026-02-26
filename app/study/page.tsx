@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { BrainCircuit, Check, X, Eye, Loader2, ChevronDown, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
-import { fetchSubjects, fetchStudyItems, deleteStudyItem } from "@/lib/api";
+import { fetchSubjects, fetchStudyItems, deleteStudyItem, generateStudyQuestions } from "@/lib/api";
 import type { Subject, StudyModeItem, MCQContent, ShortAnswerContent } from "@/lib/types";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -84,15 +84,7 @@ export default function StudyPage() {
     setGenerating(true);
     setError("");
     try {
-      const res = await fetch("/api/study/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.$id, subjectId: activeSubjectId, count: 3 }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `Failed: ${res.status}`);
-      }
+      await generateStudyQuestions({ userId: user.$id, subjectId: activeSubjectId, count: 3 });
       await loadItems();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");

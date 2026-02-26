@@ -14,7 +14,7 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     await logout();
-    router.push("/auth");
+    router.push("/login");
   };
 
   if (!mounted) {
