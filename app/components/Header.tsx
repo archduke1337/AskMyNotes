@@ -1,94 +1,43 @@
-"use client";
-
-import { Search, Bell, ChevronDown, LogOut } from "lucide-react";
-import { useAuth } from "@/lib/context/AuthContext";
-import { usePathname } from "next/navigation";
+import { Search, Hash } from "lucide-react";
 
 export default function Header() {
-     const { user, logout } = useAuth();
-     const pathname = usePathname();
-
-     // Derive page title from pathname
-     const pageTitle = (() => {
-          switch (pathname) {
-               case "/": return "Dashboard";
-               case "/upload": return "Upload Notes";
-               case "/chat": return "Chat";
-               case "/study": return "Study Mode";
-               case "/settings": return "Settings";
-               default: return "Dashboard";
-          }
-     })();
-
-     // User initials from name or email
-     const initials = user
-          ? (user.name || user.email || "?")
-               .split(" ")
-               .map((w) => w[0])
-               .join("")
-               .toUpperCase()
-               .slice(0, 2)
-          : "?";
-
-     const displayName = user?.name || user?.email || "Guest";
-
      return (
-          <header className="h-16 flex items-center justify-between px-8 border-b border-border-subtle bg-bg-surface shrink-0 sticky top-0 z-10 w-full">
-               <div className="flex items-center gap-4">
-                    <h2 className="text-xl font-semibold text-text-primary tracking-tight">{pageTitle}</h2>
+          <header className="h-16 flex items-center justify-between px-4 border-b border-black bg-white shrink-0 sticky top-0 z-10 w-full table-fixed">
+               <div className="flex items-center gap-4 border-r border-black pr-4 h-full">
+                    {/* Page Abstract */}
+                    <div className="flex items-center gap-2">
+                         <Hash className="w-4 h-4 text-black/50" strokeWidth={1.5} />
+                         <h2 className="text-xs font-mono tracking-widest text-black uppercase font-bold">DIRECTORY ROOT</h2>
+                    </div>
                </div>
 
-               <div className="flex items-center space-x-6">
+               <div className="flex h-full w-full">
                     {/* Search */}
-                    <div className="relative w-64 group hidden lg:block">
-                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary group-focus-within:text-brand-500 transition-colors" />
+                    <div className="flex-1 flex items-center border-l border-black relative group px-4">
+                         <label htmlFor="search-directory" className="text-[10px] font-mono absolute -top-[5px] left-3 bg-white px-1 leading-none uppercase text-black/50 tracking-wider">
+                              Query Catalog
+                         </label>
+                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black" strokeWidth={1.5} />
                          <input
+                              id="search-directory"
                               type="text"
-                              placeholder="Search notes, tags..."
-                              className="w-full bg-bg-subtle border border-border-default rounded-lg pl-9 pr-4 py-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all placeholder:text-text-tertiary"
+                              placeholder="FIND RECORD..."
+                              className="w-full h-8 bg-transparent border-b border-black/20 pl-7 pr-4 py-1 text-xs font-mono text-black focus:outline-none focus:border-black transition-none uppercase placeholder:text-black/30"
                          />
                     </div>
 
-                    {/* Quick Actions */}
-                    <div className="flex items-center space-x-2">
-                         <button className="relative p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-bg-subtle transition-colors">
-                              <Bell className="w-5 h-5" />
-                         </button>
+                    {/* User Abstract Area */}
+                    <div className="flex items-center h-full border-l border-black shrink-0 px-4 hover:bg-black/5 cursor-pointer">
+                         <div className="flex items-center gap-3 text-left">
+                              <div className="w-6 h-6 bg-black flex items-center justify-center text-white font-mono text-[10px] tracking-widest font-bold shrink-0">
+                                   SM
+                              </div>
+                              <div>
+                                   <p className="text-[10px] font-mono font-bold text-black uppercase leading-none mb-0.5 tracking-wider">OPERATOR: SM</p>
+                                   <p className="text-[9px] font-mono text-black/50 uppercase leading-none tracking-widest">ACCESS: SCHOLAR</p>
+                              </div>
+                         </div>
                     </div>
-
-                    {/* Divider */}
-                    <div className="h-8 w-px bg-border-subtle mx-2" />
-
-                    {/* User Profile Area */}
-                    {user ? (
-                         <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-3 p-1.5 rounded-lg text-left">
-                                   <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-semibold text-sm border border-brand-200 shrink-0">
-                                        {initials}
-                                   </div>
-                                   <div className="hidden md:block">
-                                        <p className="text-sm font-medium text-text-primary leading-none mb-1">{displayName}</p>
-                                        <p className="text-xs text-text-tertiary leading-none">Student</p>
-                                   </div>
-                              </div>
-                              <button
-                                   onClick={logout}
-                                   className="p-2 text-text-tertiary hover:text-red-600 rounded-lg hover:bg-bg-subtle transition-colors"
-                                   title="Sign out"
-                              >
-                                   <LogOut className="w-4 h-4" />
-                              </button>
-                         </div>
-                    ) : (
-                         <div className="flex items-center gap-3 p-1.5 rounded-lg text-left">
-                              <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500 font-semibold text-sm shrink-0">
-                                   ?
-                              </div>
-                              <div className="hidden md:block">
-                                   <p className="text-sm font-medium text-text-secondary leading-none">Not signed in</p>
-                              </div>
-                         </div>
-                    )}
                </div>
           </header>
      );

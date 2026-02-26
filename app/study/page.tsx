@@ -1,140 +1,138 @@
-import { BookOpen, FileText, Info } from "lucide-react";
+import { BrainCircuit, PlayCircle, Eye, RefreshCcw, Check, X } from "lucide-react";
 
-export default function StudyModePage() {
-     const mcqs = [
-          {
-               id: 1,
-               question: "Which of the following best describes the purpose of the Chain Rule?",
-               options: [
-                    "To find the limit of a discontinuous function",
-                    "To differentiate a composite function",
-                    "To integrate a polynomial",
-                    "To find the tangent plane of a surface"
-               ],
-               correctAnswer: "To differentiate a composite function",
-               explanation: "The Chain Rule specifically addresses composite functions by taking the derivative of the outer function evaluated at the inner function, multiplied by the derivative of the inner function.",
-               citation: "Chapter_3_Derivatives.pdf — Page 14"
-          },
-          {
-               id: 2,
-               question: "If f(x) = sin(x²), what is f'(x) using the chain rule?",
-               options: [
-                    "cos(x²)",
-                    "2x * cos(x²)",
-                    "sin(2x)",
-                    "-2x * cos(x²)"
-               ],
-               correctAnswer: "2x * cos(x²)",
-               explanation: "The outer function is sin(u) yielding cos(u), and inner is x² yielding 2x. Multiplying them gives 2x * cos(x²).",
-               citation: "Chapter_3_Derivatives.pdf — Page 15"
-          }
-     ];
-
-     const shortAnswers = [
-          {
-               id: 1,
-               question: "Explain the difference between a local maximum and an absolute maximum.",
-               answer: "A local maximum is the highest point within a specific, restricted interval or neighborhood around a point. An absolute maximum is the highest point over the entire domain of the function.",
-               explanation: "While a function can have multiple local maxima, it can only have one absolute maximum value (though it may occur at multiple x-values).",
-               citation: "Chapter_4_Applications_of_Derivatives.pdf — Page 8"
-          }
-     ];
-
+export default function StudyPage() {
      return (
-          <div className="p-8 max-w-5xl mx-auto h-full overflow-y-auto">
-               {/* Header */}
-               <div className="mb-10 pb-6 border-b border-border-default">
-                    <div className="flex items-center gap-3 mb-2">
-                         <BookOpen className="w-6 h-6 text-brand-600" />
-                         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">Study Mode</h1>
-                    </div>
-                    <p className="text-text-secondary text-sm">Self-assessment for <strong>Advanced Calculus</strong> based on your uploaded notes.</p>
+          <div className="flex flex-col h-full bg-white font-sans text-black relative">
+               <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"
+                    style={{ backgroundImage: "linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)", backgroundSize: "64px 64px" }}>
                </div>
 
-               {/* Multiple Choice Section */}
-               <section className="mb-14">
-                    <div className="flex items-center justify-between mb-6">
-                         <h2 className="text-xl font-semibold text-text-primary tracking-tight">Part 1: Multiple Choice Questions (5)</h2>
+               {/* Header */}
+               <div className="h-12 border-b border-black flex items-center justify-between px-6 shrink-0 bg-white relative z-10 transition-none">
+                    <div className="flex items-center gap-3">
+                         <BrainCircuit className="w-4 h-4 text-black" strokeWidth={1.5} />
+                         <h2 className="text-[10px] font-mono tracking-widest uppercase font-bold text-black">ACTIVE STUDY REGIMEN // EXAM.PREP</h2>
                     </div>
-                    <div className="space-y-6">
-                         {mcqs.map((q, index) => (
-                              <div key={q.id} className="bg-bg-surface border border-border-default rounded-xl p-6 shadow-sm">
-                                   <h3 className="text-base font-semibold text-text-primary mb-4 leading-relaxed">
-                                        <span className="text-brand-600 mr-2">{index + 1}.</span>
-                                        {q.question}
-                                   </h3>
 
-                                   <div className="space-y-3 mb-6">
-                                        {q.options.map((opt, i) => {
-                                             const isCorrect = opt === q.correctAnswer;
-                                             return (
-                                                  <div key={i} className={`px-4 py-3 rounded-lg border text-sm font-medium flex items-center gap-3 cursor-pointer ${isCorrect
-                                                            ? "bg-[#Edf7ed] border-[#C5E1A5] text-[#1E4620]"
-                                                            : "bg-bg-app border-border-subtle text-text-primary"
-                                                       }`}>
-                                                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isCorrect ? "border-[#1E4620] bg-[#1E4620]" : "border-border-strong bg-bg-surface"
-                                                            }`}>
-                                                            {isCorrect && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                                                       </div>
-                                                       {opt}
-                                                  </div>
-                                             );
-                                        })}
+                    <div className="flex items-center gap-4">
+                         <div className="bg-black text-white px-2 py-1 text-[9px] font-mono font-bold tracking-widest uppercase">
+                              TARGET: ADVANCED CALCULUS
+                         </div>
+                         <button className="flex items-center gap-2 border border-black hover:bg-black hover:text-white px-3 py-1 font-mono text-[10px] uppercase tracking-widest transition-none cursor-pointer">
+                              <RefreshCcw className="w-3 h-3" />
+                              RE-GENERATE PROTOCOL
+                         </button>
+                    </div>
+               </div>
+
+               <div className="flex-1 overflow-y-auto p-8 relative z-10 max-w-5xl mx-auto w-full">
+
+                    {/* Flashcard / MCQ Module */}
+                    <div className="mb-12">
+                         <div className="border-b border-black/30 pb-2 mb-6 flex items-center justify-between">
+                              <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-black">TEST.MODULE: MULTIPLE CHOICE</h3>
+                              <span className="text-[10px] font-mono tracking-widest text-black/50">01 / 05</span>
+                         </div>
+
+                         <div className="border border-black bg-white group cursor-pointer hover:bg-black/5 transition-none p-8">
+                              <div className="flex justify-between items-start mb-6 border-b border-black pb-4">
+                                   <span className="bg-black text-white font-mono text-[10px] font-bold px-2 py-1 tracking-widest uppercase">QUESTION NO.1</span>
+                                   <span className="border border-black font-mono text-[9px] px-2 py-0.5 font-bold uppercase text-black">DIFFICULTY: HARD</span>
+                              </div>
+
+                              <p className="text-sm font-mono uppercase tracking-wider leading-relaxed text-black mb-10">
+                                   When applying the Chain Rule to differentiate h(x) = sin³(x²), what is the correct first step in decomposition?
+                              </p>
+
+                              <div className="space-y-4 font-mono text-xs uppercase cursor-default">
+
+                                   <div className="flex items-center gap-4 border border-black p-4 bg-white hover:bg-black hover:text-white group transition-none">
+                                        <div className="w-6 h-6 border tracking-widest border-black flex items-center justify-center shrink-0">A</div>
+                                        <span className="flex-1 group-hover:text-white">Treat sin(x) as the outer function and x² as the inner.</span>
+                                        <div className="w-4 h-4"></div>
                                    </div>
 
-                                   {/* Answer Key / Explanation */}
-                                   <div className="bg-brand-50 rounded-lg p-5 border border-brand-100">
-                                        <div className="flex items-center gap-2 font-semibold text-brand-800 text-sm mb-2">
-                                             <Info className="w-4 h-4 shrink-0" />
-                                             Explanation
-                                        </div>
-                                        <p className="text-sm text-brand-900 leading-relaxed mb-4">{q.explanation}</p>
-                                        <div className="flex items-center gap-2 text-xs font-medium text-brand-700 w-fit bg-brand-100/50 px-3 py-1.5 border border-brand-200 rounded-md">
-                                             <FileText className="w-3 h-3 shrink-0" />
-                                             Citation: {q.citation}
-                                        </div>
+                                   {/* Selected / Correct Answer style */}
+                                   <div className="flex items-center gap-4 border-2 border-black p-4 bg-black/5 transition-none">
+                                        <div className="w-6 h-6 bg-black text-white border border-black flex items-center justify-center shrink-0 tracking-widest">B</div>
+                                        <span className="flex-1 font-bold">Treat u³ as the outermost function where u = sin(x²).</span>
+                                        <Check className="w-4 h-4 text-black shrink-0" strokeWidth={3} />
+                                   </div>
+
+                                   <div className="flex items-center gap-4 border border-black p-4 bg-white hover:bg-black hover:text-white group transition-none">
+                                        <div className="w-6 h-6 border tracking-widest border-black flex items-center justify-center shrink-0">C</div>
+                                        <span className="flex-1 group-hover:text-white">Differentiate x² first and multiply by 3.</span>
+                                        <div className="w-4 h-4"></div>
+                                   </div>
+
+                              </div>
+
+                              {/* Explanation Area */}
+                              <div className="mt-8 border-t border-dashed border-black pt-6">
+                                   <div className="flex items-center gap-2 mb-3">
+                                        <PlayCircle className="w-4 h-4 text-black" strokeWidth={1.5} />
+                                        <h4 className="font-mono text-[10px] font-bold tracking-widest uppercase text-black">LOGICAL BREAKDOWN</h4>
+                                   </div>
+                                   <p className="text-xs font-mono uppercase tracking-wider leading-relaxed text-black/70">
+                                        Correct. h(x) = (sin(x³))². The outermost function is the power of 3. Therefore, d/dx [u³] = 3u² * du/dx. Next you apply the chain rule again to the inner function sin(x²).
+                                   </p>
+                              </div>
+                         </div>
+                    </div>
+
+                    {/* Short Answer Module */}
+                    <div>
+                         <div className="border-b border-black/30 pb-2 mb-6 flex items-center justify-between">
+                              <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-black">TEST.MODULE: SHORT ANSWER</h3>
+                              <span className="text-[10px] font-mono tracking-widest text-black/50">01 / 03</span>
+                         </div>
+
+                         <div className="border border-black bg-white p-8 group">
+                              <div className="flex justify-between items-start mb-6 border-b border-black pb-4">
+                                   <span className="font-mono text-[10px] font-bold tracking-widest uppercase text-black">QUESTION NO.2</span>
+                                   <button className="flex items-center gap-2 font-mono text-[10px] tracking-widest font-bold border border-black px-2 py-1 uppercase text-black hover:bg-black hover:text-white transition-none cursor-pointer">
+                                        <Eye className="w-3 h-3" />
+                                        REVEAL MASTER_COPY
+                                   </button>
+                              </div>
+
+                              <p className="text-sm font-mono uppercase tracking-wider leading-relaxed text-black mb-8">
+                                   Briefly describe why l'Hôpital's rule is invalid if the limit does not evaluate to an indeterminate form like 0/0 or ∞/∞.
+                              </p>
+
+                              <div className="border border-black relative">
+                                   <div className="absolute top-0 right-0 bg-black text-white px-2 py-1 text-[8px] font-mono font-bold tracking-widest uppercase">EVALUATION_MODE: MANUAL</div>
+                                   <textarea
+                                        className="w-full bg-transparent p-4 min-h-[120px] font-mono text-xs uppercase tracking-wider focus:outline-none focus:bg-black/5 transition-none text-black placeholder:text-black/30 resize-none"
+                                        placeholder="[ENTER HYPOTHESIS HERE...]"
+                                   />
+                              </div>
+
+                              {/* Hidden answer state (mock visible as if button was clicked) */}
+                              <div className="mt-8 border border-black border-dashed bg-black/5 p-6">
+                                   <div className="flex items-center gap-2 mb-3">
+                                        <Check className="w-4 h-4 text-black" strokeWidth={2} />
+                                        <h4 className="font-mono text-[10px] font-bold tracking-widest uppercase text-black">MASTER.COPY.REVEAL</h4>
+                                   </div>
+                                   <p className="text-xs font-mono uppercase tracking-wider leading-relaxed text-black/80">
+                                        L'Hôpital's rule is derived from linear approximations near a point. If the limits of the numerator and denominator are finite and non-zero, direct substitution yields the exact limit. Applying derivatives alters the fundamental ratio of the original functions improperly.
+                                   </p>
+
+                                   <div className="mt-4 flex gap-4 border-t border-black/30 pt-4 cursor-default">
+                                        <span className="font-mono text-[9px] font-bold tracking-widest uppercase text-black/50">SELF EVALUATION:</span>
+                                        <button className="flex items-center gap-1 font-mono text-[9px] tracking-widest text-black border border-black hover:bg-[#df2c2c] hover:text-white hover:border-[#df2c2c] px-2 py-0.5 transition-none">
+                                             <X className="w-3 h-3" /> INCORRECT
+                                        </button>
+                                        <button className="flex items-center gap-1 font-mono text-[9px] tracking-widest text-black border border-black hover:bg-black hover:text-white px-2 py-0.5 transition-none">
+                                             <Check className="w-3 h-3" strokeWidth={2} /> CORRECT
+                                        </button>
                                    </div>
                               </div>
-                         ))}
-                    </div>
-               </section>
 
-               {/* Short Answer Section */}
-               <section className="mb-10">
-                    <div className="flex items-center justify-between mb-6">
-                         <h2 className="text-xl font-semibold text-text-primary tracking-tight">Part 2: Short Answer Questions (3)</h2>
+                         </div>
                     </div>
-                    <div className="space-y-6">
-                         {shortAnswers.map((q, index) => (
-                              <div key={q.id} className="bg-bg-surface border border-border-default rounded-xl p-6 shadow-sm">
-                                   <h3 className="text-base font-semibold text-text-primary mb-4 leading-relaxed">
-                                        <span className="text-brand-600 mr-2">{index + 1}.</span>
-                                        {q.question}
-                                   </h3>
 
-                                   <div className="mb-6">
-                                        <div className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">Ideal Answer</div>
-                                        <div className="bg-bg-app border border-border-subtle rounded-lg p-4 text-sm text-text-primary leading-relaxed font-medium">
-                                             {q.answer}
-                                        </div>
-                                   </div>
-
-                                   {/* Explanation & Citation */}
-                                   <div className="bg-brand-50 rounded-lg p-5 border border-brand-100">
-                                        <div className="flex items-center gap-2 font-semibold text-brand-800 text-sm mb-2">
-                                             <Info className="w-4 h-4 shrink-0" />
-                                             Key Concept
-                                        </div>
-                                        <p className="text-sm text-brand-900 leading-relaxed mb-4">{q.explanation}</p>
-                                        <div className="flex items-center gap-2 text-xs font-medium text-brand-700 w-fit bg-brand-100/50 px-3 py-1.5 border border-brand-200 rounded-md">
-                                             <FileText className="w-3 h-3 shrink-0" />
-                                             Citation: {q.citation}
-                                        </div>
-                                   </div>
-                              </div>
-                         ))}
-                    </div>
-               </section>
+               </div>
           </div>
      );
 }

@@ -1,221 +1,107 @@
-"use client";
-
-import { useEffect, useState, useCallback, useRef } from "react";
-import { UploadCloud, FileText, ChevronDown, Trash2, Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/context/AuthContext";
-import { fetchSubjects, fetchNoteFiles, uploadNoteFile, deleteNoteFile } from "@/lib/api";
-import type { Subject, NoteFile } from "@/lib/types";
+import { UploadCloud, FileText, ChevronDown, Trash2 } from "lucide-react";
 
 export default function UploadPage() {
-     const { user, loading: authLoading } = useAuth();
-     const fileInputRef = useRef<HTMLInputElement>(null);
-
-     const [subjects, setSubjects] = useState<Subject[]>([]);
-     const [selectedSubjectId, setSelectedSubjectId] = useState("");
-     const [files, setFiles] = useState<NoteFile[]>([]);
-     const [loading, setLoading] = useState(true);
-     const [uploading, setUploading] = useState(false);
-     const [error, setError] = useState("");
-
-     // Load subjects
-     const loadSubjects = useCallback(async () => {
-          if (!user) return;
-          try {
-               const data = await fetchSubjects(user.$id);
-               setSubjects(data);
-               if (data.length > 0 && !selectedSubjectId) {
-                    setSelectedSubjectId(data[0].$id);
-               }
-          } catch (err: unknown) {
-               setError(err instanceof Error ? err.message : "Failed to load subjects");
-          }
-     }, [user, selectedSubjectId]);
-
-     // Load files for selected subject
-     const loadFiles = useCallback(async () => {
-          if (!user || !selectedSubjectId) { setFiles([]); setLoading(false); return; }
-          try {
-               setLoading(true);
-               const data = await fetchNoteFiles(user.$id, selectedSubjectId);
-               setFiles(data);
-          } catch (err: unknown) {
-               setError(err instanceof Error ? err.message : "Failed to load files");
-          } finally {
-               setLoading(false);
-          }
-     }, [user, selectedSubjectId]);
-
-     useEffect(() => {
-          if (!authLoading && user) loadSubjects();
-          if (!authLoading && !user) setLoading(false);
-     }, [authLoading, user, loadSubjects]);
-
-     useEffect(() => {
-          if (selectedSubjectId) loadFiles();
-     }, [selectedSubjectId, loadFiles]);
-
-     // Handle file upload
-     const handleUpload = async (fileList: FileList | null) => {
-          if (!fileList || !user || !selectedSubjectId) return;
-          setError("");
-          setUploading(true);
-          try {
-               for (const file of Array.from(fileList)) {
-                    await uploadNoteFile(user.$id, selectedSubjectId, file);
-               }
-               await loadFiles();
-          } catch (err: unknown) {
-               setError(err instanceof Error ? err.message : "Upload failed");
-          } finally {
-               setUploading(false);
-               if (fileInputRef.current) fileInputRef.current.value = "";
-          }
-     };
-
-     // Handle delete
-     const handleDelete = async (fileId: string) => {
-          if (!confirm("Delete this file?")) return;
-          try {
-               await deleteNoteFile(fileId);
-               await loadFiles();
-          } catch (err: unknown) {
-               setError(err instanceof Error ? err.message : "Failed to delete file");
-          }
-     };
-
-     // Handle drop zone
-     const handleDrop = (e: React.DragEvent) => {
-          e.preventDefault();
-          handleUpload(e.dataTransfer.files);
-     };
-
-     if (authLoading || (loading && subjects.length === 0)) {
-          return (
-               <div className="flex items-center justify-center h-full">
-                    <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
-               </div>
-          );
-     }
-
-     if (!user) {
-          return (
-               <div className="flex items-center justify-center h-full">
-                    <p className="text-text-secondary">Please sign in to upload notes.</p>
-               </div>
-          );
-     }
-
      return (
-          <div className="p-8 max-w-4xl mx-auto h-full overflow-y-auto">
-               <div className="mb-8">
-                    <h1 className="text-2xl font-semibold tracking-tight text-text-primary">Upload Notes</h1>
-                    <p className="text-text-secondary mt-2">Add study materials to your subjects for the AI to process.</p>
+          <div className="flex flex-col h-full bg-white relative font-sans">
+               <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                    style={{ backgroundImage: "linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)", backgroundSize: "32px 32px" }}>
                </div>
 
-               {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                         {error}
+               <div className="h-12 border-b border-black flex items-center justify-between px-6 shrink-0 bg-white relative z-10">
+                    <div className="text-[10px] font-mono font-bold tracking-widest uppercase text-black">
+                         PROCESS: DATA INGESTION // FORM.01
                     </div>
-               )}
-
-               {/* Subject Selector */}
-               <div className="bg-bg-surface border border-border-default rounded-xl p-6 mb-8 shadow-sm">
-                    <label className="block text-sm font-semibold text-text-primary mb-2">Subject</label>
-                    {subjects.length > 0 ? (
-                         <div className="relative">
-                              <select
-                                   className="w-full appearance-none bg-bg-app border border-border-default rounded-lg pl-4 pr-10 py-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
-                                   value={selectedSubjectId}
-                                   onChange={(e) => setSelectedSubjectId(e.target.value)}
-                              >
-                                   {subjects.map((s) => (
-                                        <option key={s.$id} value={s.$id}>{s.name}</option>
-                                   ))}
-                              </select>
-                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
-                         </div>
-                    ) : (
-                         <p className="text-sm text-text-tertiary">No subjects found. Create one from the Dashboard first.</p>
-                    )}
                </div>
 
-               {/* Drop Zone */}
-               {selectedSubjectId && (
-                    <div
-                         className="bg-bg-subtle border-2 border-dashed border-border-strong rounded-xl p-12 flex flex-col items-center justify-center text-center cursor-pointer mb-8 hover:border-brand-400 hover:bg-brand-50 transition-colors"
-                         onClick={() => fileInputRef.current?.click()}
-                         onDragOver={(e) => e.preventDefault()}
-                         onDrop={handleDrop}
-                    >
-                         <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept=".pdf,.txt"
-                              multiple
-                              className="hidden"
-                              onChange={(e) => handleUpload(e.target.files)}
-                         />
-                         <div className="w-12 h-12 bg-bg-surface border border-border-default rounded-full flex items-center justify-center mb-4">
-                              {uploading ? (
-                                   <Loader2 className="w-5 h-5 animate-spin text-brand-600" />
-                              ) : (
-                                   <UploadCloud className="w-5 h-5 text-brand-600" />
-                              )}
+               <div className="p-8 w-full max-w-4xl mx-auto space-y-8 relative z-10">
+                    {/* Form Container */}
+                    <div className="border border-black bg-white">
+                         <div className="border-b border-black p-4 bg-black text-white">
+                              <h2 className="text-xs font-mono font-bold tracking-widest uppercase">UPLOAD NEW RECORD (PDF / TXT)</h2>
                          </div>
-                         <h3 className="text-base font-semibold text-text-primary mb-1">
-                              {uploading ? "Uploading…" : "Click or drag files to upload"}
-                         </h3>
-                         <p className="text-sm text-text-secondary">Supported formats: PDF, TXT (Max 50MB)</p>
-                    </div>
-               )}
 
-               {/* Uploaded Files Table */}
-               <div>
-                    <h2 className="text-lg font-semibold text-text-primary mb-4">Uploaded Files</h2>
-                    {loading ? (
-                         <div className="flex justify-center py-8">
-                              <Loader2 className="w-5 h-5 animate-spin text-brand-500" />
+                         <div className="p-6 space-y-8">
+                              {/* Subject Registry Selector */}
+                              <div className="grid grid-cols-[160px_1fr] border border-black group">
+                                   <div className="p-4 border-r border-black bg-black/5 flex items-center justify-center text-[10px] font-mono font-bold uppercase tracking-widest text-black">
+                                        TARGET INDEX REF.
+                                   </div>
+                                   <div className="relative">
+                                        <select className="w-full h-full p-4 appearance-none bg-transparent text-sm font-bold uppercase tracking-widest text-black focus:outline-none cursor-pointer">
+                                             <option>-- SELECT PRIMARY CLASSIFICATION --</option>
+                                             <option>ADVANCED CALCULUS [MTH-401]</option>
+                                             <option>ORGANIC CHEMISTRY [CHM-302]</option>
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 border border-black flex items-center justify-center">
+                                             <ChevronDown className="w-3 h-3 text-black" strokeWidth={2} />
+                                        </div>
+                                   </div>
+                              </div>
+
+                              {/* Ingestion Dropzone */}
+                              <div className="border border-dashed border-black hover:bg-black/5 transition-none cursor-pointer group flex flex-col items-center justify-center py-24 relative overflow-hidden">
+                                   <div className="w-12 h-12 border border-black flex items-center justify-center mb-6 bg-white group-hover:scale-110 transition-transform">
+                                        <UploadCloud className="w-5 h-5 text-black" strokeWidth={1.5} />
+                                   </div>
+                                   <h3 className="font-bold text-sm text-black uppercase tracking-widest">TRANSMIT FILES HERE</h3>
+                                   <p className="text-[10px] font-mono text-black/60 uppercase mt-2 tracking-widest text-center max-w-sm leading-relaxed">
+                                        DRAG & DROP SECURE RECORDS.<br />
+                                        MAX SIZE: 50MB // FORMATS: .PDF .TXT
+                                   </p>
+                                   <div className="mt-8">
+                                        <button className="px-6 py-2 border border-black bg-white hover:bg-black hover:text-white font-mono text-[10px] font-bold tracking-widest transition-none">
+                                             BROWSE LOCAL STORAGE
+                                        </button>
+                                   </div>
+                              </div>
                          </div>
-                    ) : files.length === 0 ? (
-                         <div className="border border-border-default rounded-xl bg-bg-surface p-8 text-center">
-                              <p className="text-sm text-text-tertiary">No files uploaded yet for this subject.</p>
+                    </div>
+
+                    {/* Upload Session Log */}
+                    <div className="border border-black bg-white">
+                         <div className="border-b border-black p-2 bg-black/5 flex justify-between items-center">
+                              <h3 className="text-[10px] font-mono font-bold tracking-widest uppercase text-black ml-2">UPLOAD_SESSION_LOG.XLS</h3>
+                              <span className="text-[10px] font-mono text-black/50 px-2 tracking-widest">2 RECORD(S)</span>
                          </div>
-                    ) : (
-                         <div className="border border-border-default rounded-xl bg-bg-surface overflow-hidden">
-                              <table className="w-full text-left text-sm">
-                                   <thead className="bg-bg-subtle border-b border-border-default text-text-secondary">
-                                        <tr>
-                                             <th className="px-6 py-3 font-medium">File Name</th>
-                                             <th className="px-6 py-3 font-medium">Type</th>
-                                             <th className="px-6 py-3 font-medium">Upload Date</th>
-                                             <th className="px-6 py-3 font-medium text-right">Action</th>
-                                        </tr>
-                                   </thead>
-                                   <tbody className="divide-y divide-border-subtle">
-                                        {files.map((file) => (
-                                             <tr key={file.$id}>
-                                                  <td className="px-6 py-4 flex items-center gap-3 text-text-primary font-medium">
-                                                       <FileText className="w-4 h-4 text-text-tertiary" />
-                                                       {file.fileName}
-                                                  </td>
-                                                  <td className="px-6 py-4 text-text-secondary uppercase">{file.fileType}</td>
-                                                  <td className="px-6 py-4 text-text-secondary">
-                                                       {new Date(file.uploadedAt).toLocaleDateString()}
-                                                  </td>
-                                                  <td className="px-6 py-4 text-right">
-                                                       <button
-                                                            onClick={() => handleDelete(file.$id)}
-                                                            className="p-2 text-text-tertiary hover:text-red-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg transition-colors"
-                                                       >
-                                                            <Trash2 className="w-4 h-4" />
-                                                       </button>
-                                                  </td>
-                                             </tr>
-                                        ))}
-                                   </tbody>
-                              </table>
-                         </div>
-                    )}
+                         <table className="w-full text-left border-collapse font-sans text-xs">
+                              <tbody className="font-mono">
+                                   <tr className="border-b border-black hover:bg-black/5 relative group">
+                                        <td className="w-12 border-r border-black p-3 text-center text-black/30 group-hover:text-black">
+                                             <FileText className="w-4 h-4 mx-auto" />
+                                        </td>
+                                        <td className="p-3 border-r border-black font-bold uppercase tracking-widest text-[10px] text-black">Chapter_3_Derivatives.pdf</td>
+                                        <td className="p-3 border-r border-black text-[10px] text-black/50 w-24 text-right border-dashed">4.2 MB</td>
+                                        <td className="p-3 w-32 border-r border-black">
+                                             <div className="h-6 w-full border border-black p-0.5 relative group">
+                                                  {/* Strict black progress bar */}
+                                                  <div className="h-full bg-black w-[100%] transition-none"></div>
+                                                  <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white mix-blend-difference tracking-widest">100% COMPLETE</span>
+                                             </div>
+                                        </td>
+                                        <td className="w-12 p-3 text-center">
+                                             <button className="relative border border-black w-6 h-6 mx-auto flex items-center justify-center hover:bg-black hover:text-white transition-none text-black">
+                                                  <Trash2 className="w-3 h-3" strokeWidth={1.5} />
+                                             </button>
+                                        </td>
+                                   </tr>
+                                   <tr className="hover:bg-black/5 relative group">
+                                        <td className="w-12 border-r border-black p-3 text-center text-black/30 group-hover:text-black">
+                                             <FileText className="w-4 h-4 mx-auto" />
+                                        </td>
+                                        <td className="p-3 border-r border-black font-bold uppercase tracking-widest text-[10px] text-black">Lecture_01_Limits.pdf</td>
+                                        <td className="p-3 border-r border-black text-[10px] text-black/50 w-24 text-right border-dashed">1.8 MB</td>
+                                        <td className="p-3 w-32 border-r border-black text-center">
+                                             <span className="text-[10px] font-bold tracking-widest text-black uppercase">QUEUED</span>
+                                        </td>
+                                        <td className="w-12 p-3 text-center">
+                                             <button className="relative border border-black w-6 h-6 mx-auto flex items-center justify-center hover:bg-black hover:text-white transition-none text-black">
+                                                  <Trash2 className="w-3 h-3" strokeWidth={1.5} />
+                                             </button>
+                                        </td>
+                                   </tr>
+                              </tbody>
+                         </table>
+                    </div>
                </div>
           </div>
      );
