@@ -1,4 +1,4 @@
-import { UploadCloud, FileText, ChevronDown, Trash2 } from "lucide-react";
+ import { UploadCloud, FileText, ChevronDown, Trash2 } from "lucide-react";
 
 export default function UploadPage() {
      const uploadedFiles = [
