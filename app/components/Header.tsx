@@ -18,7 +18,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
   const handleLogout = async () => {
     await logout();
-    router.push("/auth");
+    router.push("/login"); // Updated specifically to redirect to your new login
   };
 
   return (
@@ -26,14 +26,14 @@ export default function Header({ onMenuToggle }: HeaderProps) {
       <div className="flex items-center gap-2 md:gap-4 md:border-r md:border-border-strong md:pr-4 h-full">
         <button
           onClick={onMenuToggle}
-          className="md:hidden p-1.5 hover:bg-bg-subtle cursor-pointer"
+          className="md:hidden p-1.5 hover:bg-bg-subtle cursor-pointer transition-colors"
           aria-label="Toggle menu"
         >
-          <Menu className="w-5 h-5" strokeWidth={1.5} />
+          <Menu className="w-5 h-5 text-text-primary" strokeWidth={1.5} />
         </button>
         <div className="flex items-center gap-2">
           <Hash className="w-4 h-4 text-text-tertiary hidden md:block" strokeWidth={1.5} />
-          <h2 className="text-[10px] font-mono tracking-widest uppercase font-bold">
+          <h2 className="text-[10px] sm:text-xs font-mono tracking-widest uppercase font-bold text-text-primary">
             DIRECTORY ROOT
           </h2>
         </div>
@@ -42,42 +42,41 @@ export default function Header({ onMenuToggle }: HeaderProps) {
       <div className="flex h-full flex-1 min-w-0">
         {/* Search */}
         <div className="hidden md:flex flex-1 items-center border-l border-border-strong relative group px-4">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-            strokeWidth={1.5}
-          />
+          <label htmlFor="search-directory" className="text-[10px] font-mono absolute -top-[5px] left-3 bg-bg-surface px-1 leading-none uppercase text-text-tertiary tracking-wider shadow-[0_0_0_2px_var(--bg-surface)]">
+            Query Catalog
+          </label>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" strokeWidth={1.5} />
           <input
             id="search-directory"
             type="text"
             placeholder="FIND RECORD..."
-            className="w-full h-8 bg-transparent border-b border-border-subtle pl-7 pr-4 py-1 text-xs font-mono focus:outline-none focus:border-border-strong uppercase placeholder:text-text-tertiary"
+            className="w-full h-8 bg-transparent border-b border-border-subtle pl-7 pr-4 py-1 text-xs font-mono focus:outline-none focus:border-border-strong uppercase placeholder:text-text-tertiary text-text-primary"
           />
         </div>
 
-        {/* User Area */}
-        <div className="flex items-center h-full border-l border-border-strong shrink-0 px-2 md:px-4">
+        {/* User Abstract Area */}
+        <div className="flex items-center h-full border-l border-border-strong shrink-0 px-2 md:px-4 group relative">
           <div className="flex items-center gap-2 md:gap-3 text-left">
-            <div className="w-6 h-6 bg-text-primary text-bg-app flex items-center justify-center font-mono text-[10px] tracking-widest font-bold shrink-0">
+            <div className="w-6 h-6 bg-text-primary flex items-center justify-center text-bg-app font-mono text-[10px] tracking-widest font-bold shrink-0">
               {initials}
             </div>
-            <div className="hidden md:block">
-              <p className="text-[10px] font-mono font-bold uppercase leading-none mb-0.5 tracking-wider">
-                OPERATOR: {initials}
+            <div className="hidden md:block w-32 truncate">
+              <p className="text-[10px] font-mono font-bold text-text-primary uppercase leading-none mb-0.5 tracking-wider truncate">
+                OP: {user?.name || "UNKNOWN NODE"}
               </p>
-              <p className="text-[9px] font-mono text-text-tertiary uppercase leading-none tracking-widest">
-                {user?.email || "—"}
+              <p className="text-[9px] font-mono text-text-tertiary uppercase leading-none tracking-widest truncate">
+                ACCESS: SCHOLAR
               </p>
             </div>
-            {user && (
-              <button
-                onClick={handleLogout}
-                className="ml-1 p-1.5 border border-border-subtle hover:border-border-strong hover:bg-text-primary hover:text-bg-app cursor-pointer transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-3 h-3" strokeWidth={1.5} />
-              </button>
-            )}
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="ml-2 sm:ml-4 sm:absolute sm:right-0 sm:top-0 sm:h-full sm:w-12 sm:bg-text-primary sm:text-bg-app flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-none cursor-pointer border border-border-strong sm:border-0 p-1.5 sm:p-0 hover:bg-bg-subtle sm:hover:bg-text-primary"
+            title="Terminate Session"
+          >
+            <LogOut className="w-4 h-4 shrink-0" strokeWidth={2} />
+          </button>
         </div>
       </div>
     </header>
